@@ -1,0 +1,58 @@
+{
+  "manifest_version": "0.1",
+  "name": "jak-shield",
+  "display_name": "JAK Shield",
+  "version": "0.1.0",
+  "description": "Universal MCP security gateway. Every AI tool call passes through Shield first — input/output scanning, prompt-injection detection, PII redaction, deterministic policy engine, human-in-the-loop approvals, and full audit trail.",
+  "author": {
+    "name": "JAK Shield",
+    "email": "support@jakshield.ai"
+  },
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "${__dirname}/server/index.js",
+      "args": [],
+      "env": {
+        "SHIELD_DEFAULT_TENANT_ID": "claude-desktop",
+        "SHIELD_DEFAULT_USER_ROLE": "TENANT_ADMIN"
+      }
+    }
+  },
+  "user_config": {
+    "openai_api_key": {
+      "type": "string",
+      "title": "OpenAI API key (optional)",
+      "description": "Enables the AI risk classifier. JAK Shield works deterministically without it.",
+      "required": false,
+      "sensitive": true
+    },
+    "openai_model": {
+      "type": "string",
+      "title": "OpenAI model",
+      "default": "gpt-5.4",
+      "required": false
+    },
+    "field_encryption_key": {
+      "type": "string",
+      "title": "Field encryption key (64 hex chars)",
+      "description": "AES-256-GCM key for credentials at rest. Generate with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
+      "required": false,
+      "sensitive": true
+    },
+    "corporate_domains": {
+      "type": "string",
+      "title": "Corporate email domains (comma-separated)",
+      "description": "Email domains treated as 'internal' — anything else is 'external' and triggers PII review.",
+      "default": "",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "client": {
+      "claude_desktop": ">=0.10.0"
+    }
+  }
+}

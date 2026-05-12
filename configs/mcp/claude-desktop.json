@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "jak-shield": {
+      "command": "node",
+      "args": ["${HOME}/Desktop/jak shield/packages/mcp-server/dist/stdio.js"],
+      "env": {
+        "OPENAI_API_KEY": "",
+        "OPENAI_MODEL": "gpt-5.4",
+        "JAK_SHIELD_FIELD_KEY": "",
+        "DATABASE_URL": "",
+        "SHIELD_DEFAULT_TENANT_ID": "claude-desktop",
+        "SHIELD_DEFAULT_USER_ROLE": "TENANT_ADMIN",
+        "SHIELD_CORPORATE_DOMAINS": "jakshield.ai"
+      }
+    }
+  }
+}

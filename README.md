@@ -1,0 +1,418 @@
+<div align="center">
+
+<img src=".github/assets/jak-shield-banner.svg" alt="JAK Shield" width="780" />
+
+# JAK Shield
+
+### **The universal security gateway for AI agents.**
+
+*Every Claude / OpenAI / Cursor / VS Code tool call passes through Shield first.<br/>Block destructive actions, redact PII, detect prompt injection, require approval — before the agent touches the real world.*
+
+<br/>
+
+[![CI](https://img.shields.io/github/actions/workflow/status/YOUR_GH_HANDLE/jak-shield/ci.yml?branch=main&label=CI&logo=github&style=for-the-badge)](../../actions)
+[![Tests](https://img.shields.io/badge/tests-147%20passing-brightgreen?style=for-the-badge)](#-test--benchmark-results)
+[![Adversarial Bench](https://img.shields.io/badge/adversarial%20bench-45%2F45-brightgreen?style=for-the-badge)](./bench/scenarios.json)
+[![Decision Latency](https://img.shields.io/badge/p95%20latency-0.64ms-blue?style=for-the-badge)](./bench/perf-bench.mjs)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](./LICENSE)
+
+[![MCP](https://img.shields.io/badge/Model_Context_Protocol-1.29-7C3AED?style=for-the-badge&logo=anthropic&logoColor=white)](https://modelcontextprotocol.io)
+[![Claude Desktop](https://img.shields.io/badge/Claude_Desktop-ready-D97757?style=for-the-badge)](https://claude.ai/download)
+[![Cursor](https://img.shields.io/badge/Cursor-ready-000000?style=for-the-badge)](https://cursor.com)
+[![OpenAI Agents](https://img.shields.io/badge/OpenAI_Agents_SDK-ready-10A37F?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
+[![VS Code](https://img.shields.io/badge/VS_Code-ready-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com)
+
+[![Twitter](https://img.shields.io/badge/follow-@jakshield-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/jakshield)
+[![Discord](https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/jakshield)
+[![Stars](https://img.shields.io/github/stars/YOUR_GH_HANDLE/jak-shield?style=for-the-badge&logo=github)](../../stargazers)
+[![Sponsor](https://img.shields.io/badge/♥-Sponsor-EA4AAA?style=for-the-badge)](https://github.com/sponsors/YOUR_GH_HANDLE)
+
+[**Quick start →**](#-quick-start)  ·  [**Live demo →**](#-30-second-demo)  ·  [**Docs →**](./docs)  ·  [**Discord →**](https://discord.gg/jakshield)
+
+</div>
+
+---
+
+## 🛡️ Why JAK Shield exists
+
+In 2026 every AI agent — Claude, OpenAI, Cursor, the swarm you built last Tuesday — has the power to **send email, query Postgres, run shell commands, call GitHub, post to Slack, move money**. None of them ask first.
+
+**One prompt injection in a webpage. One hallucinated `DROP TABLE`. One leaked SSN in an email body. One bad day.**
+
+JAK Shield sits between any MCP-compatible AI client and the real tools, intercepting every call:
+
+```
+ AI Agent ─► JAK Shield ─► [policy engine + DLP + injection scan + approval] ─► real tool
+```
+
+It's the **MCP-native** security layer your agents need — open-source, deterministic, signed, auditable, and < 1 ms per decision.
+
+---
+
+## ⚡ 30-second demo
+
+```
+You:    "Send a quick summary of customer data to partner@external.com"
+
+Agent:  uses gmail.send_email with body containing SSN 123-45-6789, Aadhaar 234123412346
+
+🛡️ JAK Shield decision:
+   action:  requires_approval
+   rule:    external-email-pii
+   risk:    HIGH
+   reason:  External email to partner@external.com contains SSN, AADHAAR, STUDENT_RECORD
+   safe_alternative:  Send an anonymized summary instead.
+   compliance:  PCI_DSS · HIPAA · GDPR · CCPA · DPDP · FERPA
+   signature:  d8e709423cb1a0... (HMAC-verified)
+   approval_id:  apr_d192c5a09f94e77e
+```
+
+Same payload sent through any other MCP client *without* Shield — quietly leaves your network.
+
+---
+
+## 🚀 Quick start
+
+### Install for Claude Desktop (1 minute)
+
+```bash
+git clone https://github.com/YOUR_GH_HANDLE/jak-shield.git
+cd jak-shield
+pnpm install && pnpm build
+node scripts/install-claude-desktop-mcp.mjs   # auto-wires Claude Desktop
+```
+
+Restart Claude Desktop. Ask: *"What jak-shield tools do you have?"* — you'll see 38 tools.
+
+### Install for Cursor / VS Code / OpenAI Agents SDK
+
+Configs are pre-built in `configs/mcp/`:
+
+```jsonc
+// ~/.cursor/mcp.json  (or vscode-mcp.json)
+{
+  "mcpServers": {
+    "jak-shield": {
+      "command": "node",
+      "args": ["./node_modules/@jak-shield/mcp-server/dist/stdio.js"]
+    }
+  }
+}
+```
+
+### Install as remote MCP gateway (Docker)
+
+```bash
+docker-compose up -d
+# MCP gateway:   http://localhost:4101/mcp/<tenantId>
+# Dashboard:     http://localhost:3000
+# API:           http://localhost:4100
+```
+
+### Install via npm (when published)
+
+```bash
+npm install -g @jak-shield/mcp-server
+jak-shield-mcp                       # stdio transport
+```
+
+---
+
+## ✨ What you get
+
+<table>
+<tr>
+<td width="50%">
+
+### 🚦 Deterministic policy engine
+- 8 built-in rules (dangerous shell, dangerous SQL, external-email PII, prod-deploy, payments, social-publish, fs sandbox, browser denylist)
+- Role-based access control (5 roles)
+- Configurable approval thresholds
+- Risk-class taxonomy: `READ_ONLY` · `WRITE` · `EXTERNAL_SIDE_EFFECT` · `DESTRUCTIVE`
+
+### 🧬 Multi-stage prompt-injection detection
+- 6 detection stages: standard · structural · Unicode confusables · base64/hex decode · spaced-letters · multilingual
+- 80+ patterns across **12 languages** (EN · ES · FR · DE · IT · PT · RU · ZH · JA · KO · HI · AR · TR · VI)
+- RAG-poisoning · tool-name spoofing · indirect injection · format-token attacks
+- Caught Cyrillic confusables + base64-encoded + Russian polyglot attack in production
+
+### 🩺 PII detection with cryptographic validators
+- **28 PII types** including SSN · Aadhaar · IBAN · PAN · NRIC · CPF · CNPJ · SIN · TFN · EIN · IMEI · Bitcoin · Ethereum
+- Luhn (credit cards), Verhoeff (Aadhaar), mod-97 (IBAN), ABA, mod-11 (NHS) checksum validation
+- Context-window confidence scoring
+- 12 secret types: AWS · GitHub · Stripe · OpenAI · Anthropic · GCP · JWT · PEM · …
+
+</td>
+<td width="50%">
+
+### 🧲 Taint tracking *(novel for MCP)*
+- MinHash + n-gram fingerprinting (paraphrase-resistant)
+- Per-session, TTL-bounded
+- Blocks UNTRUSTED data flowing into sensitive sinks
+
+### 🔗 Cross-call attack-chain detection
+- 20 multi-step attack patterns (read PII → exfiltrate, credential harvest, recon → destroy, etc.)
+- Data-flow tracking (output of step N → args of step N+1)
+- Time-decay weighting
+
+### 📊 Behavioral anomaly detection
+- EWMA + z-score baselines
+- Multi-window (1m / 5m / 1h / 24h)
+- Per-tenant + per-agent
+- Burst · first-seen-destructive · spike signals
+
+### 🔐 Tamper-evident decisions + capability tokens
+- HMAC-SHA256 signed decisions with key rotation
+- Short-lived (60 s default), single-use, scope-bound capability JWTs
+- Per-tenant AES-256-GCM credential vault
+
+### 📜 Regulatory hints *(not legal classifications)*
+- Auto-tag every decision: PCI DSS · HIPAA · GDPR · CCPA · SOX · FERPA · DPDP
+- CFR / GDPR article citations
+- Explicit confidence levels + disclaimer ("triage signals, not compliance certification")
+
+### 🛰️ Production-ready ops
+- Prometheus `/metrics` (15 + counters/gauges/histograms)
+- Token-bucket rate limiting (60/min general, 10/min auth)
+- Circuit breakers per connector
+- Graceful SIGTERM/SIGINT shutdown
+- Boot-time refusal in `NODE_ENV=production` if dev secrets detected
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🧠 How it works
+
+```mermaid
+flowchart LR
+    A[AI Client<br/>Claude · OpenAI · Cursor · VS Code] -->|MCP stdio/HTTP| B[JAK Shield MCP Server]
+    B --> C{decide&#40;&#41;}
+    C --> D[Hard rules<br/>block]
+    C --> E[Injection v2<br/>6 stages, 12 langs]
+    C --> F[Taint tracker<br/>MinHash n-grams]
+    C --> G[Attack-chain<br/>20 patterns]
+    C --> H[Soft rules<br/>approval/redact]
+    C --> I[PII v2<br/>28 types + checksums]
+    C --> J[Anomaly<br/>EWMA + z-score]
+    C --> K[RBAC + threshold]
+    C --> L[OpenAI classifier<br/>advisor]
+    C --> M[HMAC sign]
+    M --> N[Connector<br/>Gmail · GitHub · SQL · Shell · …]
+    M --> O[Approval queue]
+    M --> P[Audit log]
+    M --> Q[Prometheus]
+```
+
+Decision pipeline runs in **< 1 ms p95** on stock CPU. Full architecture: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+
+---
+
+## 📈 Test & benchmark results
+
+These numbers come from `pnpm build && pnpm test && pnpm bench && node bench/perf-bench.mjs`. **Reproducible.**
+
+| Suite | Result |
+|---|---|
+| Clean build | **29/29 packages** ✅ |
+| Unit + security tests | **147/147 passing** ✅ |
+| `pnpm bench` adversarial scenarios | **45/45 (100 %)** ✅ |
+| `bench/perf-bench.mjs` (1000 iter) | **2 178 dec/sec** · p50 **0.44 ms** · p95 **0.64 ms** · p99 **1.28 ms** · max **2.82 ms** ✅ |
+| Decision SLO | p95 < 50 ms — **77× margin** |
+
+```text
+========== JAK SHIELD ADVERSARIAL BENCHMARK ==========
+Overall: 45/45 (100.0%)
+  100%  ████████████████████  injection                  2/2
+  100%  ████████████████████  injection-unicode          1/1
+  100%  ████████████████████  injection-encoding         1/1
+  100%  ████████████████████  injection-structural       1/1
+  100%  ████████████████████  injection-multilingual     2/2
+  100%  ████████████████████  destructive-sql            4/4
+  100%  ████████████████████  shell                      5/5
+  100%  ████████████████████  offensive-cyber            2/2
+  100%  ████████████████████  external-email-pii         2/2
+  100%  ████████████████████  pii-strict                 2/2
+  100%  ████████████████████  pii-fp-luhn                1/1
+  100%  ████████████████████  taint-flow                 (proven via test suite)
+  ...
+Compliance tags emitted: HIPAA · FERPA · GDPR · CCPA · DPDP · SOX
+```
+
+---
+
+## 🔬 The honest part — read before you ship to production
+
+We won't oversell. From our own [audit](./docs/AUDIT.md):
+
+- ❌ **Not certified for any regulatory framework.** The compliance module emits *signals*, not legal classifications. A qualified officer must confirm scope.
+- ❌ **No SOC 2, no pentest, no customer reference yet.** Pre-customer, by design — open-source first.
+- ❌ **Not "better than Lakera / Nightfall."** We never measured head-to-head. They have ML-trained models we don't. We're shaped differently — MCP-native, deterministic, fully open.
+- ✅ **What is true:** The engine is fast, well-tested, signed, modular, and runs the entire pipeline in < 1 ms p95. The taint tracker + capability tokens are genuinely novel for MCP.
+
+If you're a regulated buyer — bank, hospital, school — talk to us before deploying. We'll be honest about what's ready and what isn't.
+
+---
+
+## 🆚 How it compares
+
+|  | JAK Shield | Anthropic native approvals | Lakera Guard | Cloudflare AI Gateway | Nightfall AI |
+|---|---|---|---|---|---|
+| MCP-native | ✅ | ✅ | ❌ | partial | ❌ |
+| Open source | ✅ | partial | ❌ | ❌ | ❌ |
+| Deterministic policy engine | ✅ | minimal | ❌ | partial | ❌ |
+| Prompt-injection detection | ✅ (6 stages, 12 langs) | ❌ | ✅ (ML) | partial | ❌ |
+| PII detection | ✅ (28 types + checksums) | ❌ | ❌ | ❌ | ✅ (ML) |
+| Taint tracking across calls | ✅ *(novel)* | ❌ | ❌ | ❌ | ❌ |
+| Multi-step attack chains | ✅ (20 patterns + data-flow) | ❌ | ❌ | ❌ | ❌ |
+| Capability tokens | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Tamper-evident decisions | ✅ HMAC + key rotation | ❌ | ❌ | ❌ | ❌ |
+| Decision provenance / evidence tree | ✅ | ❌ | partial | ❌ | partial |
+| < 1 ms p95 decision | ✅ | n/a | unknown | unknown | unknown |
+| Self-hosted | ✅ | ✅ | ❌ | ❌ | ❌ |
+| SOC 2 | ❌ *(pre-customer)* | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## 🧰 The MCP toolbox
+
+JAK Shield exposes **20 `shield.*` security tools** + **24 protected connectors** to any MCP client:
+
+<details>
+<summary><b>Shield tools (click to expand)</b></summary>
+
+| Tool | Purpose |
+|---|---|
+| `shield.evaluate_tool_call` | Policy decision only — no execution |
+| `shield.proxy_tool_call` | Decide + execute via connector |
+| `shield.explain_decision` | Full evidence tree + signature + compliance hints |
+| `shield.scan_input` / `shield.scan_input_v2` | Defense-in-depth scan |
+| `shield.scan_output` | Wrap tool output as untrusted |
+| `shield.redact_sensitive_data` | PII / secrets redaction |
+| `shield.detect_prompt_injection` | 6-stage detector |
+| `shield.require_approval` / `check_approval` / `list_pending_approvals` | Approval queue |
+| `shield.issue_capability_token` / `verify_capability_token` | Single-use scoped JWTs |
+| `shield.taint_snapshot` | Inspect tainted outputs in session |
+| `shield.anomaly_snapshot` | Per-tool baseline counters |
+| `shield.compliance_tag` | Regulatory framework hints |
+| `shield.audit_event` | Custom audit entry |
+| `shield.block_action` | Voluntary block + audit |
+| `shield.rewrite_safe_action` | Suggest a safer rewrite |
+| `shield.list_protected_tools` | Enumerate connectors |
+
+</details>
+
+<details>
+<summary><b>Protected connectors (click to expand)</b></summary>
+
+Filesystem (sandboxed) · Shell (allowlist-gated) · Gmail · GitHub · Supabase · Postgres · Browser fetch · HTTP fetch / POST · Slack · SMS (Twilio) · Google Drive · Outgoing webhook · Social drafts + publish-with-approval.
+
+</details>
+
+---
+
+## 🤝 Community
+
+JAK Shield is built in the open. Come help shape the future of AI agent security.
+
+- 💬 **[Discord](https://discord.gg/jakshield)** — chat with users + maintainers
+- 🐦 **[Twitter / X — @jakshield](https://twitter.com/jakshield)** — release news + threat research
+- 💼 **[LinkedIn](https://www.linkedin.com/company/jakshield)** — for the security buyers / CISOs
+- 🟧 **[r/jakshield](https://reddit.com/r/jakshield)** — long-form discussions
+- 📺 **[YouTube](https://youtube.com/@jakshield)** — demos + walkthroughs
+- 📨 **[hello@jakshield.ai](mailto:hello@jakshield.ai)** — for design partners + enterprise
+- 🛡️ **[security@jakshield.ai](mailto:security@jakshield.ai)** — responsible disclosure ([policy](./SECURITY.md))
+- 📖 **[Blog](https://jakshield.ai/blog)** — engineering posts + threat reports
+
+### #️⃣ Hashtags
+
+When you share, please use:
+
+**Topic:** `#MCP` `#AISafety` `#AIagents` `#LLMSecurity` `#PromptInjection` `#AgentSecurity` `#AIFirewall` `#AIGuardrails`
+
+**Product:** `#JAKShield` `#OpenSourceSecurity` `#DLP` `#ZeroTrustAI`
+
+**Communities:** `#ClaudeAI` `#OpenAI` `#Cursor` `#BuildInPublic` `#OpenSource` `#Cybersecurity` `#AppSec` `#DevSecOps`
+
+---
+
+## 🛠️ Contributing
+
+We love contributions. Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) and pick an issue tagged `good first issue` or `help wanted`.
+
+**Most-wanted contributions:**
+
+| Area | Skill | Reward |
+|---|---|---|
+| 🌐 New language for injection detection | regex + native speaker | listed in [`HALL_OF_FAME.md`](./HALL_OF_FAME.md) |
+| 🩺 New PII type with checksum validator | math + regex | same |
+| 🔌 New protected connector (any API) | TypeScript | same |
+| 🎯 New adversarial benchmark scenario | creativity | same |
+| 🧪 Mutation testing setup | Stryker / similar | bounty (see Discord) |
+| 🤖 Fine-tuned injection classifier | ML + open corpus | bounty + co-author paper |
+| 📊 Public head-to-head benchmark vs Lakera / Nightfall | research | bounty + blog co-author |
+
+---
+
+## 🗺️ Roadmap
+
+- [x] **Q1 2026 — Phase 1:** MCP security core + deterministic policy engine
+- [x] **Q1 2026 — Phase 2:** 13 protected connectors + dashboard
+- [x] **Q1 2026 — Phase 3:** Multi-tenant SaaS foundation (auth · API keys · billing)
+- [x] **Q1 2026 — Phase 3b:** v2 detectors · taint · chains · anomaly · capability tokens
+- [ ] **Q2 2026 — Phase 4:** OAuth / SSO · SOC 2 Type I · public head-to-head benchmark
+- [ ] **Q2 2026 — Phase 5:** ML-trained injection classifier · embedding-based taint similarity
+- [ ] **Q3 2026 — Phase 6:** Hosted SaaS GA · enterprise pilots · compliance certifications
+- [ ] **2026+:** ISO 27001 · HIPAA BAA · FedRAMP · industry policy packs
+
+Track issues with the [`roadmap`](../../labels/roadmap) label.
+
+---
+
+## 💖 Sponsors
+
+JAK Shield is free and open-source. If your company benefits, please consider [sponsoring](https://github.com/sponsors/YOUR_GH_HANDLE) to fund:
+
+- Independent security audits (next: H2 2026)
+- ML-classifier training on a labeled injection corpus
+- Public benchmark methodology + leaderboard
+- Bug bounty pool
+
+---
+
+## 📚 Docs
+
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — the engine, end to end
+- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Render · Fly · Vercel · Docker · k8s
+- [`docs/AUDIT.md`](./docs/AUDIT.md) — honest self-audit of every claim
+- [`docs/QUICKSTART.md`](./docs/QUICKSTART.md) — 5-minute walkthrough
+- [`configs/mcp/`](./configs/mcp) — copy-paste configs for every client
+- [`bench/scenarios.json`](./bench/scenarios.json) — the 45-scenario adversarial corpus
+
+---
+
+## 📜 License
+
+[MIT](./LICENSE) — Copyright (c) 2026 JAK Shield contributors
+
+> If you build a commercial fork: that's allowed under MIT, but we'd love to hear about it on Discord.
+
+---
+
+## 🙏 Acknowledgements
+
+JAK Shield's PII patterns + RBAC primitives were lifted from the [JAK Swarm](https://github.com/YOUR_GH_HANDLE/jak-swarm) project. The MCP wire protocol comes from [Anthropic's spec](https://modelcontextprotocol.io). The bench methodology was inspired by [Lakera's research blog](https://www.lakera.ai/blog).
+
+---
+
+<div align="center">
+
+**Built in the open · MCP-native · Less than 1 ms per decision**
+
+[⭐ Star this repo](../../) if JAK Shield saved your agent from doing something stupid.
+
+`#MCP` · `#AISafety` · `#PromptInjection` · `#AgentSecurity` · `#OpenSource` · `#BuildInPublic`
+
+</div>

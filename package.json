@@ -1,0 +1,34 @@
+{
+  "name": "jak-shield",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Universal MCP security gateway for AI agents",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "test": "turbo run test",
+    "test:unit": "vitest run",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @jak-shield/approval-gateway prisma generate",
+    "db:migrate": "pnpm --filter @jak-shield/approval-gateway prisma migrate dev",
+    "db:push": "pnpm --filter @jak-shield/approval-gateway prisma db push",
+    "db:studio": "pnpm --filter @jak-shield/approval-gateway prisma studio",
+    "mcp:stdio": "pnpm --filter @jak-shield/mcp-server dev:stdio",
+    "mcp:http": "pnpm --filter @jak-shield/mcp-server dev:http",
+    "bench": "pnpm --filter @jak-shield/mcp-server build && pnpm --filter @jak-shield/bench bench",
+    "package:claude-desktop": "node packaging/claude-desktop/build.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4"
+}

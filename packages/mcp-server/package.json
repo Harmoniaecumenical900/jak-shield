@@ -1,0 +1,35 @@
+{
+  "name": "@jak-shield/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "bin": {
+    "jak-shield-mcp": "./dist/stdio.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev:stdio": "tsc -p tsconfig.json && node dist/stdio.js",
+    "dev:http": "tsc -p tsconfig.json && node dist/http.js"
+  },
+  "dependencies": {
+    "@jak-shield/shared": "workspace:*",
+    "@jak-shield/core": "workspace:*",
+    "@jak-shield/dlp": "workspace:*",
+    "@jak-shield/prompt-shield": "workspace:*",
+    "@jak-shield/policy-engine": "workspace:*",
+    "@jak-shield/openai-classifier": "workspace:*",
+    "@jak-shield/audit-log": "workspace:*",
+    "@jak-shield/approval-gateway": "workspace:*",
+    "@jak-shield/connectors-registry": "workspace:*",
+    "@jak-shield/connectors-bundle": "workspace:*",
+    "@jak-shield/auth": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": { "typescript": "^5.7.3" }
+}

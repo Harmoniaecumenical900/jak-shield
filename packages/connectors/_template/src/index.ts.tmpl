@@ -1,0 +1,23 @@
+import { ToolRiskClass } from '@jak-shield/shared';
+import type { ToolExecutionResult } from '@jak-shield/shared';
+import { defineTool, registerConnectorTool, type ConnectorTool } from '@jak-shield/connectors-registry';
+
+const myTool: ConnectorTool = {
+  metadata: defineTool('mytool.do_thing', 'What this tool does', ToolRiskClass.READ_ONLY, {
+    type: 'object',
+    properties: { foo: { type: 'string' } },
+    required: ['foo'],
+  }),
+  async execute(args): Promise<ToolExecutionResult> {
+    try {
+      // ...your logic here...
+      return { success: true, data: `did the thing with ${String(args.foo)}` };
+    } catch (err) {
+      return { success: false, error: (err as Error).message };
+    }
+  },
+};
+
+export function registerMyConnector(): void {
+  registerConnectorTool(myTool);
+}

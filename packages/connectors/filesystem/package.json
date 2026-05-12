@@ -1,0 +1,21 @@
+{
+  "name": "@jak-shield/connector-filesystem",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@jak-shield/shared": "workspace:*",
+    "@jak-shield/core": "workspace:*",
+    "@jak-shield/connectors-registry": "workspace:*",
+    "@jak-shield/policy-engine": "workspace:*"
+  },
+  "devDependencies": { "typescript": "^5.7.3" }
+}

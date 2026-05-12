@@ -1,0 +1,26 @@
+{
+  "name": "@jak-shield/tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@jak-shield/shared": "workspace:*",
+    "@jak-shield/core": "workspace:*",
+    "@jak-shield/dlp": "workspace:*",
+    "@jak-shield/prompt-shield": "workspace:*",
+    "@jak-shield/policy-engine": "workspace:*",
+    "@jak-shield/audit-log": "workspace:*",
+    "@jak-shield/approval-gateway": "workspace:*",
+    "@jak-shield/mcp-server": "workspace:*",
+    "@jak-shield/connectors-bundle": "workspace:*",
+    "@jak-shield/connectors-registry": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8",
+    "typescript": "^5.7.3"
+  }
+}

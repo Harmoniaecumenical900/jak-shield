@@ -1,0 +1,20 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../filesystem" },
+    { "path": "../shell" },
+    { "path": "../gmail" },
+    { "path": "../github" },
+    { "path": "../supabase" },
+    { "path": "../postgres" },
+    { "path": "../browser" },
+    { "path": "../http" },
+    { "path": "../slack" },
+    { "path": "../sms" },
+    { "path": "../gdrive" },
+    { "path": "../webhook" },
+    { "path": "../social" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "jak-shield": {
+      "command": "node",
+      "args": ["./node_modules/@jak-shield/mcp-server/dist/stdio.js"],
+      "env": {
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
+        "OPENAI_MODEL": "gpt-5.4",
+        "JAK_SHIELD_FIELD_KEY": "${env:JAK_SHIELD_FIELD_KEY}"
+      }
+    }
+  }
+}

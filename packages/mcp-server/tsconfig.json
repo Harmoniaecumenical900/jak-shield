@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../shared" },
+    { "path": "../core" },
+    { "path": "../dlp" },
+    { "path": "../prompt-shield" },
+    { "path": "../policy-engine" },
+    { "path": "../openai-classifier" },
+    { "path": "../audit-log" },
+    { "path": "../approval-gateway" },
+    { "path": "../connectors/registry" },
+    { "path": "../connectors/bundle" },
+    { "path": "../auth" }
+  ]
+}

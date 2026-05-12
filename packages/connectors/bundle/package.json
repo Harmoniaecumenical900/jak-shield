@@ -1,0 +1,26 @@
+{
+  "name": "@jak-shield/connectors-bundle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit" },
+  "dependencies": {
+    "@jak-shield/connector-filesystem": "workspace:*",
+    "@jak-shield/connector-shell": "workspace:*",
+    "@jak-shield/connector-gmail": "workspace:*",
+    "@jak-shield/connector-github": "workspace:*",
+    "@jak-shield/connector-supabase": "workspace:*",
+    "@jak-shield/connector-postgres": "workspace:*",
+    "@jak-shield/connector-browser": "workspace:*",
+    "@jak-shield/connector-http": "workspace:*",
+    "@jak-shield/connector-slack": "workspace:*",
+    "@jak-shield/connector-sms": "workspace:*",
+    "@jak-shield/connector-gdrive": "workspace:*",
+    "@jak-shield/connector-webhook": "workspace:*",
+    "@jak-shield/connector-social": "workspace:*"
+  },
+  "devDependencies": { "typescript": "^5.7.3" }
+}

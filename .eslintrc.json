@@ -1,0 +1,31 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "no-console": ["warn", { "allow": ["error", "warn"] }],
+    "no-debugger": "error",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "TSAsExpression > TSNeverKeyword.typeAnnotation",
+        "message": "Avoid `as never` casts. Use a proper type guard or refine the input shape."
+      }
+    ],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    ".next",
+    ".turbo",
+    "coverage",
+    "**/*.d.ts",
+    "packages/approval-gateway/prisma/**"
+  ]
+}

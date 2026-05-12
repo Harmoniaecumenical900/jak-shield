@@ -1,0 +1,36 @@
+# JAK Shield default tenant policy.
+# All built-in rules are always on — these settings tune thresholds.
+
+tenant: default
+
+approval_threshold: HIGH        # Tools at or above this risk level enqueue an approval.
+
+corporate_domains:
+  - jakshield.ai
+
+shell_allowlist:
+  - echo
+  - ls
+  - cat
+  - pwd
+  - whoami
+  - hostname
+  - date
+  - uptime
+
+filesystem:
+  sandbox_root: ./.shield-sandbox
+
+browser:
+  denylist:
+    - localhost
+    - 127.0.0.1
+    - 169.254.169.254       # cloud metadata service
+
+classifier:
+  enabled: true
+  timeout_ms: 1500
+  cache_ttl_ms: 60000
+
+approvals:
+  default_ttl_seconds: 86400  # 24 hours

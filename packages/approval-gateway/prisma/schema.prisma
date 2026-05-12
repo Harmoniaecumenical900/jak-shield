@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id
+  name      String
+  plan      String   @default("FREE") // FREE, PRO, ENTERPRISE
+  createdAt DateTime @default(now())
+
+  users         User[]
+  members       TenantMember[]
+  approvals     ApprovalRequest[]
+  auditEntries  AuditLogEntry[]
+  policies      PolicyRule[]
+  connectors    ConnectedConnector[]
+  credentials   EncryptedCredential[]
+  apiKeys       ApiKey[]
+  invitations   Invitation[]
+  subscription  Subscription?
+  usageCounters UsageCounter[]
+}
+
+model User {
+  id           String   @id
+  tenantId     String   // primary tenant (the one created on signup)
+  email        String   @unique
+  passwordHash String?
+  name         String?
+  emailVerified Boolean @default(false)
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
+
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  memberships  TenantMember[]
+  approvals    ApprovalRequest[]
+  audit        AuditLogEntry[]
+  invitesSent  Invitation[]      @relation("InvitedBy")
+
+  @@index([tenantId])
+}
+
+/// Junction table — a user can belong to multiple tenants with a per-tenant role.
+model TenantMember {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      String   @default("END_USER") // EXTERNAL_AUDITOR, END_USER, REVIEWER, OPERATOR, TENANT_ADMIN
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+}
+
+model ApprovalRequest {
+  id           String    @id
+  tenantId     String
+  userId       String?
+  agentId      String?
+  toolName     String
+  argsRedacted Json
+  reason       String
+  rule         String?
+  risk         String
+  status       String    @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED, DEFERRED
+  decidedBy    String?
+  decidedAt    DateTime?
+  decidedNote  String?
+  expiresAt    DateTime?
+  requestedAt  DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status])
+  @@index([requestedAt])
+}
+
+model AuditLogEntry {
+  id        String   @id
+  tenantId  String
+  userId    String?
+  agentId   String?
+  action    String
+  severity  String
+  resource  String?
+  details   Json
+  timestamp DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, action])
+  @@index([tenantId, severity])
+  @@index([tenantId, timestamp])
+  @@index([resource])
+}
+
+model PolicyRule {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  enabled     Boolean  @default(true)
+  yamlConfig  String   @db.Text
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+}
+
+model ConnectedConnector {
+  id        String    @id @default(cuid())
+  tenantId  String
+  name      String    // e.g. "gmail", "github"
+  config    Json
+  enabled   Boolean   @default(true)
+  lastUsed  DateTime?
+  createdAt DateTime  @default(now())
+
+  tenant      Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  credentials EncryptedCredential[]
+
+  @@unique([tenantId, name])
+}
+
+model EncryptedCredential {
+  id           String   @id @default(cuid())
+  tenantId     String
+  connectorId  String?
+  name         String   // env-var-style name e.g. GITHUB_TOKEN
+  encryptedVal String   @db.Text
+  createdAt    DateTime @default(now())
+  rotatedAt    DateTime?
+
+  tenant    Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  connector ConnectedConnector? @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([connectorId])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  tenantId    String
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String    // first 8 chars for display ("jks_xxxx…")
+  scopes      String[]  // ["mcp:invoke","approvals:read","approvals:decide","audit:read"]
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([keyHash])
+}
+
+model Invitation {
+  id         String   @id @default(cuid())
+  tenantId   String
+  email      String
+  role       String   @default("END_USER")
+  tokenHash  String   @unique
+  invitedById String?
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  tenant      Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invitedBy   User?  @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([email])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  tenantId             String    @unique
+  plan                 String    @default("FREE") // FREE, PRO, ENTERPRISE
+  status               String    @default("ACTIVE") // ACTIVE, PAST_DUE, CANCELED, TRIALING
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  trialEndsAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+/// Per-tenant counters (one row per metric per period). Reset by a worker / cron.
+model UsageCounter {
+  id           String   @id @default(cuid())
+  tenantId     String
+  metric       String   // decisions, approvals_created, classifier_calls, redactions
+  periodStart  DateTime
+  periodEnd    DateTime
+  count        Int      @default(0)
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, metric, periodStart])
+  @@index([tenantId, periodStart])
+}

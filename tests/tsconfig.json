@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "security",
+    "outDir": "dist",
+    "noEmit": true,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["security/**/*"]
+}

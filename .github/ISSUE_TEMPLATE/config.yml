@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🛡️ Security vulnerability
+    url: mailto:security@jakshield.ai
+    about: Do NOT open a public issue. Use private email per SECURITY.md.
+  - name: 💬 Discord
+    url: https://discord.gg/jakshield
+    about: Chat with maintainers + users. Best for "how do I do X?"
+  - name: 📖 Docs
+    url: https://github.com/YOUR_GH_HANDLE/jak-shield/tree/main/docs
+    about: Architecture, deployment, audit, quick-start
+  - name: 🐦 Twitter / X
+    url: https://twitter.com/jakshield
+    about: Release news + threat research
