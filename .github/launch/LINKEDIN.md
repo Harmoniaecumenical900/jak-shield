@@ -44,7 +44,7 @@ I'll be candid about what JAK Shield is NOT today:
 
 If you're a CISO or security lead at a company already running AI agents and you'd like to be a design partner for the enterprise version (SOC 2, SSO, IP allowlisting, custom compliance packs), please reach out: hello@jakshield.ai
 
-If you're an engineer who wants to use it today: github.com/YOUR_GH_HANDLE/jak-shield. One-command install for Claude Desktop, Cursor, VS Code, or OpenAI Agents SDK.
+If you're an engineer who wants to use it today: github.com/inbharatai/jak-shield. One-command install for Claude Desktop, Cursor, VS Code, or OpenAI Agents SDK.
 
 If you want to contribute: Discord at discord.gg/jakshield. Most-wanted PRs in CONTRIBUTING.md.
 

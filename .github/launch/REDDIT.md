@@ -26,7 +26,7 @@ I spent the last few months building JAK Shield — an MCP-native gateway that s
 
 **Bench:** 45/45 adversarial scenarios pass. Repo includes the benchmark JSON, the runner, and a perf SLO check (p95 < 50 ms enforced in CI; actual measured 0.64 ms).
 
-Open-source MIT. Works with Claude Desktop today via one command. Repo + install + docs: https://github.com/YOUR_GH_HANDLE/jak-shield
+Open-source MIT. Works with Claude Desktop today via one command. Repo + install + docs: https://github.com/inbharatai/jak-shield
 
 Happy to take adversarial inputs — if you can evade the detectors I'll fix and credit you in `HALL_OF_FAME.md`.
 
@@ -52,7 +52,7 @@ Engineering highlights:
 - Taint tracking via MinHash with 32-dim signatures, Jaccard threshold 0.30
 - All 147 tests run in < 5 s; full clean rebuild + tests + bench in < 90 s
 
-Repo: https://github.com/YOUR_GH_HANDLE/jak-shield
+Repo: https://github.com/inbharatai/jak-shield
 
 Honest part: no SOC 2, no pen-test, zero customers. Pre-customer by design — wanted the code in the open first.
 
@@ -79,6 +79,6 @@ Threat model + what it actually defends against, honestly:
 
 Detector mix is intentionally heuristic-first (regex + checksum validators + structural parse + Unicode normalization + multi-language) with the OpenAI classifier as advisor. Rules-first because regulated buyers want to read the regex.
 
-Repo: https://github.com/YOUR_GH_HANDLE/jak-shield
+Repo: https://github.com/inbharatai/jak-shield
 
 Specifically asking: anyone here run an MCP server in prod? What's your gating story today? What attack class would you most like the next adversarial benchmark scenario to cover?

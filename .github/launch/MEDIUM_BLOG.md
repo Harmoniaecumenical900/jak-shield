@@ -155,6 +155,6 @@ If this resonates: star the repo, share with one teammate, send me an adversaria
 
 **Tags:** `ai-safety` `llm-security` `mcp` `prompt-injection` `open-source` `security` `agent-security` `dlp` `compliance` `build-in-public` `claude` `openai` `cursor` `typescript`
 
-**Repo:** https://github.com/YOUR_GH_HANDLE/jak-shield
+**Repo:** https://github.com/inbharatai/jak-shield
 **Discord:** https://discord.gg/jakshield
 **Twitter:** https://twitter.com/jakshield

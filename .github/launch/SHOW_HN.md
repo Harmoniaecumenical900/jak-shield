@@ -41,7 +41,7 @@ The pitch in one sentence: every tool call passes through Shield first, where a 
 
 Most AI security tools (Lakera, NeMo, Nightfall) sit in front of the LLM API. JAK Shield sits between the agent and the tools — a different shape. I think the MCP tool-call boundary is the right place for security because that's where the agent acquires real-world capability. Curious if HN agrees.
 
-Repo + 45-scenario benchmark + perf SLO check in CI: https://github.com/YOUR_GH_HANDLE/jak-shield
+Repo + 45-scenario benchmark + perf SLO check in CI: https://github.com/inbharatai/jak-shield
 
 Happy to answer anything. Especially adversarial inputs you think might evade the detectors — I'll add them to `bench/scenarios.json` and credit you.
 

@@ -4,7 +4,7 @@ People who made JAK Shield better. Listed in the order they landed their first c
 
 ## Founding maintainer
 
-- [@YOUR_GH_HANDLE](https://github.com/YOUR_GH_HANDLE) — author, v0.1.0
+- [@inbharatai](https://github.com/inbharatai) — author, v0.1.0
 
 ## Contributors
 

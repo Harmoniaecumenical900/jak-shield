@@ -10,7 +10,7 @@
 
 <br/>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/YOUR_GH_HANDLE/jak-shield/ci.yml?branch=main&label=CI&logo=github&style=for-the-badge)](../../actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/inbharatai/jak-shield/ci.yml?branch=main&label=CI&logo=github&style=for-the-badge)](../../actions)
 [![Tests](https://img.shields.io/badge/tests-147%20passing-brightgreen?style=for-the-badge)](#-test--benchmark-results)
 [![Adversarial Bench](https://img.shields.io/badge/adversarial%20bench-45%2F45-brightgreen?style=for-the-badge)](./bench/scenarios.json)
 [![Decision Latency](https://img.shields.io/badge/p95%20latency-0.64ms-blue?style=for-the-badge)](./bench/perf-bench.mjs)
@@ -24,8 +24,8 @@
 
 [![Twitter](https://img.shields.io/badge/follow-@jakshield-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/jakshield)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/jakshield)
-[![Stars](https://img.shields.io/github/stars/YOUR_GH_HANDLE/jak-shield?style=for-the-badge&logo=github)](../../stargazers)
-[![Sponsor](https://img.shields.io/badge/♥-Sponsor-EA4AAA?style=for-the-badge)](https://github.com/sponsors/YOUR_GH_HANDLE)
+[![Stars](https://img.shields.io/github/stars/inbharatai/jak-shield?style=for-the-badge&logo=github)](../../stargazers)
+[![Sponsor](https://img.shields.io/badge/♥-Sponsor-EA4AAA?style=for-the-badge)](https://github.com/sponsors/inbharatai)
 
 [**Quick start →**](#-quick-start)  ·  [**Live demo →**](#-30-second-demo)  ·  [**Docs →**](./docs)  ·  [**Discord →**](https://discord.gg/jakshield)
 
@@ -76,7 +76,7 @@ Same payload sent through any other MCP client *without* Shield — quietly leav
 ### Install for Claude Desktop (1 minute)
 
 ```bash
-git clone https://github.com/YOUR_GH_HANDLE/jak-shield.git
+git clone https://github.com/inbharatai/jak-shield.git
 cd jak-shield
 pnpm install && pnpm build
 node scripts/install-claude-desktop-mcp.mjs   # auto-wires Claude Desktop
@@ -373,7 +373,7 @@ Track issues with the [`roadmap`](../../labels/roadmap) label.
 
 ## 💖 Sponsors
 
-JAK Shield is free and open-source. If your company benefits, please consider [sponsoring](https://github.com/sponsors/YOUR_GH_HANDLE) to fund:
+JAK Shield is free and open-source. If your company benefits, please consider [sponsoring](https://github.com/sponsors/inbharatai) to fund:
 
 - Independent security audits (next: H2 2026)
 - ML-classifier training on a labeled injection corpus
@@ -403,7 +403,7 @@ JAK Shield is free and open-source. If your company benefits, please consider [s
 
 ## 🙏 Acknowledgements
 
-JAK Shield's PII patterns + RBAC primitives were lifted from the [JAK Swarm](https://github.com/YOUR_GH_HANDLE/jak-swarm) project. The MCP wire protocol comes from [Anthropic's spec](https://modelcontextprotocol.io). The bench methodology was inspired by [Lakera's research blog](https://www.lakera.ai/blog).
+JAK Shield's PII patterns + RBAC primitives were lifted from the [JAK Swarm](https://github.com/inbharatai/jak-swarm) project. The MCP wire protocol comes from [Anthropic's spec](https://modelcontextprotocol.io). The bench methodology was inspired by [Lakera's research blog](https://www.lakera.ai/blog).
 
 ---
 

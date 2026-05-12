@@ -43,5 +43,5 @@ Initial public release.
 - Injection detectors are rule-based; ML augmentation is on the Q2 2026 roadmap.
 - Taint tracking is in-memory single-process; multi-instance persistence is on the roadmap.
 
-[Unreleased]: https://github.com/YOUR_GH_HANDLE/jak-shield/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/YOUR_GH_HANDLE/jak-shield/releases/tag/v0.1.0
+[Unreleased]: https://github.com/inbharatai/jak-shield/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/inbharatai/jak-shield/releases/tag/v0.1.0

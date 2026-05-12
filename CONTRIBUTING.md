@@ -5,7 +5,7 @@ First — thank you. JAK Shield is built by people who care about AI agents not 
 ## TL;DR
 
 ```bash
-git clone https://github.com/YOUR_GH_HANDLE/jak-shield.git
+git clone https://github.com/inbharatai/jak-shield.git
 cd jak-shield
 pnpm install
 pnpm build

@@ -95,7 +95,7 @@ What IS true: the engine is fast, signed, modular, and runs end-to-end in < 1 ms
 **7/11 — installs in 1 minute**
 
 ```bash
-git clone github.com/YOUR_GH_HANDLE/jak-shield
+git clone github.com/inbharatai/jak-shield
 cd jak-shield && pnpm install && pnpm build
 node scripts/install-claude-desktop-mcp.mjs
 ```
@@ -143,7 +143,7 @@ If you want to help:
 
 💬 Discord: discord.gg/jakshield
 🐦 Follow: @jakshield
-⭐ Star: github.com/YOUR_GH_HANDLE/jak-shield
+⭐ Star: github.com/inbharatai/jak-shield
 🎯 Adversarial inputs: open an issue tagged `detector-miss` — I'll fix + credit you
 
 Most-wanted contributions in `CONTRIBUTING.md`.
@@ -185,6 +185,6 @@ If you don't want a thread:
 >
 > 45/45 adversarial benchmark. MIT.
 >
-> github.com/YOUR_GH_HANDLE/jak-shield
+> github.com/inbharatai/jak-shield
 >
 > #MCP #AISafety #PromptInjection #BuildInPublic

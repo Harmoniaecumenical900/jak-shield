@@ -7,7 +7,7 @@ contact_links:
     url: https://discord.gg/jakshield
     about: Chat with maintainers + users. Best for "how do I do X?"
   - name: 📖 Docs
-    url: https://github.com/YOUR_GH_HANDLE/jak-shield/tree/main/docs
+    url: https://github.com/inbharatai/jak-shield/tree/main/docs
     about: Architecture, deployment, audit, quick-start
   - name: 🐦 Twitter / X
     url: https://twitter.com/jakshield
