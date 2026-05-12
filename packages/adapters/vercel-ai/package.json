@@ -1,0 +1,62 @@
+{
+  "name": "@jak-shield/vercel-ai",
+  "version": "0.1.0",
+  "description": "JAK Shield adapter for the Vercel AI SDK. Wraps shield tools as `tool()` definitions and exposes a gate() wrapper for existing tools.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "ai": "^4.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "ai": "^4.0.0",
+    "typescript": "^5.7.3",
+    "zod": "^3.23.8"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "vercel",
+    "vercel-ai",
+    "ai-sdk",
+    "nextjs",
+    "ai-safety",
+    "prompt-injection",
+    "agent-security",
+    "jak-shield"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbharatai/jak-shield.git",
+    "directory": "packages/adapters/vercel-ai"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": {
+    "name": "JAK Shield",
+    "email": "hello@jakshield.ai"
+  },
+  "bugs": {
+    "url": "https://github.com/inbharatai/jak-shield/issues"
+  },
+  "homepage": "https://github.com/inbharatai/jak-shield#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

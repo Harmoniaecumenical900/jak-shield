@@ -1,0 +1,33 @@
+[project]
+name = "jak-shield-pydantic-ai"
+version = "0.1.0"
+description = "JAK Shield adapter for Pydantic AI — gate any agent's tool calls through JAK Shield's policy engine"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "JAK Shield", email = "hello@jakshield.ai" }]
+keywords = ["pydantic-ai", "ai-safety", "prompt-injection", "agent-security", "jak-shield", "mcp"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+]
+
+dependencies = [
+    "pydantic-ai>=0.0.30",
+    "httpx>=0.27.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/inbharatai/jak-shield"
+Issues = "https://github.com/inbharatai/jak-shield/issues"
+Documentation = "https://github.com/inbharatai/jak-shield/tree/main/packages/adapters/pydantic-ai"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["jak_shield_pydantic_ai"]

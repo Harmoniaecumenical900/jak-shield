@@ -6,6 +6,7 @@
     { "path": "../../packages/shared" },
     { "path": "../../packages/core" },
     { "path": "../../packages/dlp" },
+    { "path": "../../packages/prompt-shield" },
     { "path": "../../packages/audit-log" },
     { "path": "../../packages/approval-gateway" },
     { "path": "../../packages/policy-engine" },

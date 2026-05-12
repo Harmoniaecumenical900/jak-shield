@@ -2,5 +2,8 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'packages/connectors/*'
+  - 'packages/adapters/gemini'
+  - 'packages/adapters/vercel-ai'
+  - 'packages/adapters/langchain/js'
   - 'tests'
   - 'bench'

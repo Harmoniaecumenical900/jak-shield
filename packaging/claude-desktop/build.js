@@ -61,14 +61,26 @@ function main() {
     dependencies: pkg.dependencies,
   }, null, 2));
 
-  // Zip the build dir into a .mcpb file (zip is the .mcpb format).
-  const out = path.join(__dirname, `jak-shield-${pkg.version}.mcpb`);
-  log(`Writing ${out}`);
+  // .mcpb is just a zip file with a different extension. Write the zip first
+  // (Compress-Archive on Windows refuses non-.zip extensions), then rename.
+  const finalOut = path.join(__dirname, `jak-shield-${pkg.version}.mcpb`);
+  const tmpZip = path.join(__dirname, `jak-shield-${pkg.version}.zip`);
+  log(`Writing ${finalOut}`);
   if (process.platform === 'win32') {
-    execSync(`powershell -Command "Compress-Archive -Path '${BUILD_DIR}\\*' -DestinationPath '${out}' -Force"`);
+    execSync(
+      `powershell -NoProfile -Command "Compress-Archive -Path '${BUILD_DIR}\\*' -DestinationPath '${tmpZip}' -Force"`,
+    );
   } else {
-    execSync(`cd '${BUILD_DIR}' && zip -r '${out}' .`);
+    execSync(`cd '${BUILD_DIR}' && zip -r '${tmpZip}' .`);
   }
+  if (existsSync(finalOut)) {
+    // unlink via fs to avoid the rename clobber edge case
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    rmSync(finalOut, { force: true });
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  copyFileSync(tmpZip, finalOut);
+  rmSync(tmpZip, { force: true });
   log('Done.');
 }
 

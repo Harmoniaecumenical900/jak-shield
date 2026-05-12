@@ -51,6 +51,14 @@ It's the **MCP-native** security layer your agents need — open-source, determi
 
 ## ⚡ 30-second demo
 
+<div align="center">
+
+<img src=".github/assets/jak-shield-demo.svg" alt="JAK Shield blocking a DROP TABLE call inside Claude Desktop" width="780" />
+
+</div>
+
+*An actual screen-recording demo is at [`.github/assets/jak-shield-demo.gif`](./.github/assets/jak-shield-demo.gif) — run [`scripts/record-demo.ps1`](./scripts/record-demo.ps1) to (re)record it from your own Claude Desktop. The asciinema cast of the test suite is at [`.github/assets/demo.cast`](./.github/assets/demo.cast).*
+
 ```
 You:    "Send a quick summary of customer data to partner@external.com"
 
