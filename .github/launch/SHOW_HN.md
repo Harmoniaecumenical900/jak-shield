@@ -22,7 +22,7 @@ The pitch in one sentence: every tool call passes through Shield first, where a 
 
 - 8 built-in policy rules (dangerous shell, dangerous SQL, external-email PII, prod deploy, payments, social publish, fs sandbox, browser denylist)
 - PII detector with 28 types and cryptographic checksum validators (Luhn for credit cards, Verhoeff for Aadhaar, mod-97 for IBAN, mod-11 for NHS, etc.)
-- Injection detector with 6 stages: standard regex, structural HTML/JSON, Unicode confusables, base64/hex/percent decode, spaced-letters, multilingual (12 languages)
+- Injection detector with 6 stages: standard regex, structural HTML/JSON, Unicode confusables, base64/hex/percent decode, spaced-letters, multilingual (13 non-English languages plus English)
 - **Taint tracking** — MinHash + n-gram fingerprinting so paraphrased/reformatted text from a prior `browser.fetch` is detected when it flows into an outbound channel. I haven't seen this anywhere else for MCP.
 - **Capability tokens** — 60s, single-use, args-bound JWTs so an intercepted token is useless beyond one specific call
 - **Attack-chain detection** — 20 multi-step patterns with data-flow tracking (output of step N appearing in args of step N+1 escalates the chain match)

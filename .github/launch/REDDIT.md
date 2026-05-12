@@ -22,7 +22,7 @@ I spent the last few months building JAK Shield — an MCP-native gateway that s
 
 2. **Capability tokens.** Short-lived (60 s default), single-use JWTs scope-bound to one specific tool + args hash. Intercepting one is useless after one second.
 
-3. **Multi-stage injection detection across 12 languages.** Cyrillic confusables, base64-decoded payloads, HTML-comment-hidden instructions, Russian / Chinese / Hindi / Arabic all caught by separate detector stages.
+3. **Multi-stage injection detection across 13 non-English languages plus English.** Cyrillic confusables, base64-decoded payloads, HTML-comment-hidden instructions, Russian / Chinese / Hindi / Arabic all caught by separate detector stages.
 
 **Bench:** 45/45 adversarial scenarios pass. Repo includes the benchmark JSON, the runner, and a perf SLO check (p95 < 50 ms enforced in CI; actual measured 0.64 ms).
 

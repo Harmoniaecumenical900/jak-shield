@@ -41,7 +41,7 @@ Sits at the MCP tool-call boundary. 10-stage decision pipeline:
 
 ⚡ Block destructive SQL / shell
 🩺 Redact PII (28 types + checksums)
-🧬 Detect injection (6 stages, 12 languages)
+🧬 Detect injection (6 stages, 13 non-English languages plus English)
 🧲 Track taint across calls
 🔗 Detect attack chains
 ✋ Require human approval
@@ -181,7 +181,7 @@ If you don't want a thread:
 
 > Shipped JAK Shield today — open-source MCP security gateway for AI agents.
 >
-> Blocks DROP TABLE, redacts PII, detects injection in 12 languages, all in 0.64 ms p95.
+> Blocks DROP TABLE, redacts PII, detects injection in 13 non-English languages plus English, all in 0.64 ms p95.
 >
 > 45/45 adversarial benchmark. MIT.
 >

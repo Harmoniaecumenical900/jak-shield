@@ -12,7 +12,7 @@ PH wants a name, tagline, description, gallery, makers, topics. Below is the ful
 
 **Description (260 chars max for the listing preview):**
 
-> JAK Shield sits between any AI agent (Claude, OpenAI, Cursor) and the real tools it calls. Blocks destructive actions, redacts PII across 28 types, detects prompt injection in 12 languages, tracks taint, requires approval. Open-source. < 1 ms per decision.
+> JAK Shield sits between any AI agent (Claude, OpenAI, Cursor) and the real tools it calls. Blocks destructive actions, redacts PII across 28 types, detects prompt injection in 13 non-English languages plus English, tracks taint, requires approval. Open-source. < 1 ms per decision.
 
 **First comment (this is the most important field on PH — under 1000 chars):**
 
@@ -25,7 +25,7 @@ PH wants a name, tagline, description, gallery, makers, topics. Below is the ful
 > What's in it today:
 > 🛡️ Deterministic policy engine (8 built-in rules)
 > 🩺 PII detection across 28 types with checksum validators
-> 🧬 6-stage injection detection across 12 languages
+> 🧬 6-stage injection detection across 13 non-English languages plus English
 > 🧲 Cross-call taint tracking (novel for MCP)
 > 🔐 HMAC-signed decisions, capability tokens, audit trail
 > 📊 0.64 ms p95 latency, 45/45 adversarial benchmark

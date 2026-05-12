@@ -84,6 +84,45 @@ node scripts/install-claude-desktop-mcp.mjs   # auto-wires Claude Desktop
 
 Restart Claude Desktop. Ask: *"What jak-shield tools do you have?"* — you'll see 38 tools.
 
+### 🌍 Works with any MCP-compatible AI client (and most others via adapter)
+
+JAK Shield speaks the [Model Context Protocol](https://modelcontextprotocol.io). Any client that does too can use it with zero JAK-Shield-specific code.
+
+**MCP-native — wire up and go:**
+
+| Client | Transport | Config |
+|---|---|---|
+| 🟪 [Claude Desktop](https://claude.ai/download) | stdio | `configs/mcp/claude-desktop.json` |
+| 🟪 [Claude Code](https://docs.anthropic.com/claude-code) CLI | stdio | `~/.claude/mcp.json` |
+| 🟪 [Anthropic Claude API](https://docs.anthropic.com) | HTTP | `tools: [{ type: "mcp", server_url }]` |
+| 🟢 [OpenAI Agents SDK](https://openai.github.io/openai-agents-python) | HTTP | `configs/mcp/openai-agents-example.ts` |
+| 🟢 [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses) | HTTP | `tools: [{ type: "mcp", server_url }]` |
+| ⬛ [Cursor](https://cursor.com) | stdio | `configs/mcp/cursor-mcp.json` |
+| 🟦 [VS Code](https://code.visualstudio.com) (Copilot Chat / Cline / Roo Code) | stdio | `configs/mcp/vscode-mcp.json` |
+| 🟫 [Windsurf](https://windsurf.com) | stdio | `~/.codeium/windsurf/mcp_config.json` |
+| ⚫ [Zed](https://zed.dev) | stdio | `~/.config/zed/settings.json` |
+| 🟡 [Goose](https://block.github.io/goose/) (Block) | stdio | `~/.config/goose/profiles.yaml` |
+| 🟠 [Continue.dev](https://continue.dev) | stdio | `~/.continue/config.json` |
+| 🟢 [Mastra](https://mastra.ai), [n8n](https://n8n.io), [LibreChat](https://librechat.ai), [5ire](https://5ire.app) | varies | their respective MCP config |
+| 🐍 [LangChain](https://www.langchain.com) (Python / JS) | stdio / HTTP | `MultiServerMCPClient` |
+| 🦙 [LlamaIndex](https://www.llamaindex.ai) | stdio / HTTP | `BasicMCPClient` |
+| 🧰 Any custom client (TS / Python / Java / Kotlin / C# / Swift SDKs) | either | use the [official SDKs](https://modelcontextprotocol.io/docs) |
+
+**Non-MCP today — needs a thin adapter (drop-in REST call):**
+
+| Tool | Why an adapter | How |
+|---|---|---|
+| ChatGPT Custom GPTs / Actions | Uses OpenAI Actions (OpenAPI 3.1), not MCP | Host the JAK Shield REST API spec |
+| Google Gemini | Google's function-calling protocol | Wrap `shield.*` tools as `FunctionDeclaration`s |
+| xAI Grok / DeepSeek / Mistral / Cohere | OpenAI-compatible tools or their own | Call `POST /api/evaluate` from your tool handler |
+| CrewAI · AutoGen · LangGraph (Python) | Python tool-class native | Subclass `BaseTool` to POST to JAK Shield |
+| Zapier · Make · IFTTT | Webhook-based | Point the webhook at `POST /api/evaluate` |
+| Anything that can POST HTTPS | n/a | JAK Shield's REST API accepts any JSON |
+
+The honest part: MCP-native clients = zero code from you. Adapter clients = ~30 min per platform. If you want pre-built adapters for any of the above, [open an issue](../../issues/new?template=feature_request.md) and we'll prioritize.
+
+---
+
 ### Install for Cursor / VS Code / OpenAI Agents SDK
 
 Configs are pre-built in `configs/mcp/`:
@@ -132,7 +171,7 @@ jak-shield-mcp                       # stdio transport
 
 ### 🧬 Multi-stage prompt-injection detection
 - 6 detection stages: standard · structural · Unicode confusables · base64/hex decode · spaced-letters · multilingual
-- 80+ patterns across **12 languages** (EN · ES · FR · DE · IT · PT · RU · ZH · JA · KO · HI · AR · TR · VI)
+- 80+ patterns across **13 non-English languages** plus an English baseline — ES · FR · DE · IT · PT · RU · ZH · JA · KO · HI · AR · TR · VI (verifiable: `grep "lang:" packages/prompt-shield/src/patterns-extended.ts`)
 - RAG-poisoning · tool-name spoofing · indirect injection · format-token attacks
 - Caught Cyrillic confusables + base64-encoded + Russian polyglot attack in production
 

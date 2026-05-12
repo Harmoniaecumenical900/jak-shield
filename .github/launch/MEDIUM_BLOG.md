@@ -117,7 +117,7 @@ I'm going to write this section the way I wish every security product wrote it.
 
 **Not SOC 2 certified.** Pre-customer by design. SOC 2 Type I is on the H2 2026 roadmap. Until then, do not deploy this to a regulated workload without your own security review.
 
-**Not "better than Lakera."** Lakera has a research team and a fine-tuned model on a labeled injection corpus. I have heuristics and regex across 12 languages. On novel adversarial prompts they likely win on recall. On determinism, transparency, and audit trail, JAK Shield wins. Different shape, different trade-off.
+**Not "better than Lakera."** Lakera has a research team and a fine-tuned model on a labeled injection corpus. I have heuristics and regex across 13 non-English languages plus English. On novel adversarial prompts they likely win on recall. On determinism, transparency, and audit trail, JAK Shield wins. Different shape, different trade-off.
 
 **The compliance module emits hints, not classifications.** PCI, HIPAA, GDPR, SOX, FERPA, DPDP signal detection. Every result includes a confidence score, a CFR / GDPR article citation, and an explicit disclaimer that says "this is triage; a qualified officer must confirm scope." I will not let "JAK Shield is HIPAA compliant" be in the marketing.
 

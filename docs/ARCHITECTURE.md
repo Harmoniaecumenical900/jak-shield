@@ -42,7 +42,7 @@ JAK Shield is an **MCP-native security gateway**. Every AI tool call crosses it 
 | `@jak-shield/shared` | Enums (`UserRole`, `RiskLevel`, `DecisionAction`, `ComplianceTag`), types, logger. Zero dependencies. |
 | `@jak-shield/core` | Tamper-evident decision signing, error classes, canonical JSON, AES-256-GCM field cipher, `assertSigningSecretReady()`. |
 | `@jak-shield/dlp` | PII detector v2 (28 types incl. SSN, Aadhaar, CPF, NRIC, IBAN, IMEI, crypto wallets), checksum validators (Luhn, Verhoeff, mod-97, ABA, mod-11), secrets detector, persistence redactor. |
-| `@jak-shield/prompt-shield` | Injection detector v2 (6 stages: standard, structural, unicode, encoding, spaced, multilingual). 80+ patterns across 12 languages + RAG poisoning + tool-name spoof + indirect injection + format-token attacks. |
+| `@jak-shield/prompt-shield` | Injection detector v2 (6 stages: standard, structural, unicode, encoding, spaced, multilingual). 80+ patterns across 13 non-English languages plus English + RAG poisoning + tool-name spoof + indirect injection + format-token attacks. |
 | `@jak-shield/policy-engine` | `decide()` orchestrator, deterministic rule set, RBAC, taint tracker (MinHash + n-gram), anomaly detector (EWMA + z-score + multi-window), attack-chain detector (20 patterns + data-flow), capability tokens, compliance signal detector. |
 | `@jak-shield/openai-classifier` | Optional OpenAI risk classifier with 1.5s timeout, 60s decision cache, graceful degrade. Advisory only — never overrides a hard block. |
 | `@jak-shield/audit-log` | Audit logger with console + Prisma sinks. Auto-redacts PII before writing. |

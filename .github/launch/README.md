@@ -80,5 +80,5 @@ cursor, vscode, typescript, nextjs, fastify
 ## Repo "About" description (350 char limit)
 
 ```
-🛡️ Universal security gateway for AI agents — MCP-native. Sits between any Claude / OpenAI / Cursor / VS Code agent and the real tools, blocking destructive actions, redacting 28 PII types, detecting injection across 12 languages, tracking taint, requiring approval. < 1 ms per decision. MIT. github.com/inbharatai/jak-shield
+🛡️ Universal security gateway for AI agents — MCP-native. Sits between any Claude / OpenAI / Cursor / VS Code agent and the real tools, blocking destructive actions, redacting 28 PII types, detecting injection across 13 non-English languages plus English, tracking taint, requiring approval. < 1 ms per decision. MIT. github.com/inbharatai/jak-shield
 ```

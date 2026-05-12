@@ -20,7 +20,7 @@ What it does:
 
 🩺 PII detection — 28 identifier types (SSN, Aadhaar, IBAN, credit cards, PAN, NRIC, IPv6, crypto wallets, …) with cryptographic checksum validation. No more "the regex matched but it wasn't actually a credit card" false positives.
 
-🧬 Prompt-injection detection across 12 languages. Catches Cyrillic confusables, base64-encoded payloads, HTML-comment-hidden instructions, multilingual jailbreaks.
+🧬 Prompt-injection detection across 13 non-English languages plus English. Catches Cyrillic confusables, base64-encoded payloads, HTML-comment-hidden instructions, multilingual jailbreaks.
 
 🧲 Cross-call taint tracking. If `browser.fetch` returns content from an untrusted URL and a later `gmail.send_email` body contains a paraphrased version, we flag it. Most security tools miss this entirely.
 

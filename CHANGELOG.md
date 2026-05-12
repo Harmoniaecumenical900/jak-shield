@@ -13,7 +13,7 @@ Initial public release.
 - **MCP server** with stdio + HTTP transports, exposing 20 `shield.*` tools and 24 protected connectors.
 - **Deterministic policy engine** with 8 built-in rules (dangerous shell, dangerous SQL, external-email PII, prod-deploy, payments, social-publish, fs sandbox, browser denylist) and a 10-stage decision pipeline.
 - **PII detector v2** — 28 PII types with cryptographic checksum validators (Luhn, Verhoeff, mod-97, ABA, mod-11, CPF/CNPJ, SIN, NRIC, TFN, EIN, IMEI, Bitcoin, Ethereum, IPv6, MAC).
-- **Injection detector v2** — 6 stages (standard regex, structural HTML/JSON, Unicode confusables, base64/hex/percent decode, spaced-letter de-spacing, multilingual) with 80+ patterns across 12 languages (EN, ES, FR, DE, IT, PT, RU, ZH, JA, KO, HI, AR, TR, VI).
+- **Injection detector v2** — 6 stages (standard regex, structural HTML/JSON, Unicode confusables, base64/hex/percent decode, spaced-letter de-spacing, multilingual) with 80+ patterns across 13 non-English languages plus English (EN, ES, FR, DE, IT, PT, RU, ZH, JA, KO, HI, AR, TR, VI).
 - **Taint tracker** — MinHash + n-gram fingerprinting, per-session, blocks UNTRUSTED data flowing into sensitive sinks (novel for MCP).
 - **Attack-chain detector** — 20 multi-step patterns with data-flow tracking and time-decay weighting.
 - **Anomaly detector** — EWMA + z-score, multi-window (1m/5m/1h/24h), per-tenant + per-agent baselines.
