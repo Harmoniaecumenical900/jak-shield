@@ -1,0 +1,60 @@
+{
+  "name": "@jak-shield/langchain",
+  "version": "0.1.0",
+  "description": "JAK Shield adapter for LangChain.js — gate any agent's tool calls through JAK Shield's policy engine.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "@langchain/core": "^0.3.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@langchain/core": "^0.3.0",
+    "typescript": "^5.7.3",
+    "zod": "^3.23.8"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "langchain",
+    "mcp",
+    "ai-safety",
+    "prompt-injection",
+    "agent-security",
+    "jak-shield"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbharatai/jak-shield.git",
+    "directory": "packages/adapters/langchain/js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": {
+    "name": "JAK Shield",
+    "email": "hello@jakshield.ai"
+  },
+  "bugs": {
+    "url": "https://github.com/inbharatai/jak-shield/issues"
+  },
+  "homepage": "https://github.com/inbharatai/jak-shield#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

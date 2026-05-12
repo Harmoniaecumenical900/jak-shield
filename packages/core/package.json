@@ -1,7 +1,6 @@
 {
   "name": "@jak-shield/core",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,5 +22,43 @@
   "devDependencies": {
     "typescript": "^5.7.3",
     "vitest": "^2.1.8"
-  }
+  },
+  "license": "MIT",
+  "author": {
+    "name": "JAK Shield",
+    "email": "hello@jakshield.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbharatai/jak-shield.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/inbharatai/jak-shield/issues"
+  },
+  "homepage": "https://github.com/inbharatai/jak-shield#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "description": "JAK Shield core: tamper-evident decision signing (HMAC-SHA256), AES-256-GCM field cipher, canonical-stable hashing, ID generators, error classes.",
+  "keywords": [
+    "mcp",
+    "ai-safety",
+    "ai-security",
+    "prompt-injection",
+    "agent-security",
+    "jak-shield",
+    "cryptography",
+    "hmac",
+    "aes-256-gcm",
+    "decision-signing"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }

@@ -1,12 +1,14 @@
 {
   "name": "@jak-shield/auth",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -24,5 +26,43 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.7",
     "typescript": "^5.7.3"
-  }
+  },
+  "license": "MIT",
+  "author": {
+    "name": "JAK Shield",
+    "email": "hello@jakshield.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbharatai/jak-shield.git",
+    "directory": "packages/auth"
+  },
+  "bugs": {
+    "url": "https://github.com/inbharatai/jak-shield/issues"
+  },
+  "homepage": "https://github.com/inbharatai/jak-shield#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "description": "JAK Shield auth: bcrypt + JWT sessions, scoped API keys, team invitations, per-tenant AES-256-GCM credential vault.",
+  "keywords": [
+    "mcp",
+    "ai-safety",
+    "ai-security",
+    "prompt-injection",
+    "agent-security",
+    "jak-shield",
+    "auth",
+    "jwt",
+    "api-keys",
+    "rbac"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }

@@ -1,11 +1,15 @@
 {
   "name": "@jak-shield/mcp-server",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "bin": {
     "jak-shield-mcp": "./dist/stdio.js"
   },
@@ -31,5 +35,46 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.23.8"
   },
-  "devDependencies": { "typescript": "^5.7.3" }
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "JAK Shield",
+    "email": "hello@jakshield.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbharatai/jak-shield.git",
+    "directory": "packages/mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/inbharatai/jak-shield/issues"
+  },
+  "homepage": "https://github.com/inbharatai/jak-shield#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "description": "JAK Shield MCP server (stdio + HTTP transports). Exposes 20 shield.* security tools + 24 protected connectors to any MCP-compatible client (Claude Desktop, OpenAI Agents SDK, Cursor, VS Code).",
+  "keywords": [
+    "mcp",
+    "ai-safety",
+    "ai-security",
+    "prompt-injection",
+    "agent-security",
+    "jak-shield",
+    "model-context-protocol",
+    "claude-desktop",
+    "cursor",
+    "openai-agents",
+    "security-gateway"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }

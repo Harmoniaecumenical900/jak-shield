@@ -1,7 +1,6 @@
 {
   "name": "@jak-shield/prompt-shield",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,5 +22,43 @@
   "devDependencies": {
     "typescript": "^5.7.3",
     "vitest": "^2.1.8"
-  }
+  },
+  "license": "MIT",
+  "author": {
+    "name": "JAK Shield",
+    "email": "hello@jakshield.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbharatai/jak-shield.git",
+    "directory": "packages/prompt-shield"
+  },
+  "bugs": {
+    "url": "https://github.com/inbharatai/jak-shield/issues"
+  },
+  "homepage": "https://github.com/inbharatai/jak-shield#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "description": "JAK Shield prompt-injection detector: 6 detection stages (standard, structural HTML/JSON, Unicode confusables, base64/hex/percent decode, spaced-letters, multilingual) across 13 non-English languages + English baseline.",
+  "keywords": [
+    "mcp",
+    "ai-safety",
+    "ai-security",
+    "prompt-injection",
+    "agent-security",
+    "jak-shield",
+    "llm-security",
+    "guardrails",
+    "jailbreak-detection",
+    "multilingual"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }

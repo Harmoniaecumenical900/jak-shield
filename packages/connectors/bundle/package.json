@@ -1,12 +1,19 @@
 {
   "name": "@jak-shield/connectors-bundle",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
   "dependencies": {
     "@jak-shield/connector-filesystem": "workspace:*",
     "@jak-shield/connector-shell": "workspace:*",
@@ -22,5 +29,41 @@
     "@jak-shield/connector-webhook": "workspace:*",
     "@jak-shield/connector-social": "workspace:*"
   },
-  "devDependencies": { "typescript": "^5.7.3" }
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "JAK Shield",
+    "email": "hello@jakshield.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbharatai/jak-shield.git",
+    "directory": "packages/connectors/bundle"
+  },
+  "bugs": {
+    "url": "https://github.com/inbharatai/jak-shield/issues"
+  },
+  "homepage": "https://github.com/inbharatai/jak-shield#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "description": "JAK Shield default connector bundle — registers all 13 built-in connectors.",
+  "keywords": [
+    "mcp",
+    "ai-safety",
+    "ai-security",
+    "prompt-injection",
+    "agent-security",
+    "jak-shield"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }

@@ -1,0 +1,354 @@
+# JAK Shield — OpenAPI 3.1 spec for ChatGPT Custom GPTs / Actions
+#
+# Paste this whole file into the "Actions" editor when building a Custom GPT,
+# OR import it into any tool that consumes OpenAPI (Postman, Stainless, etc.).
+#
+# The spec describes a tiny subset of JAK Shield's REST API that's most useful
+# to an action-style integration: evaluate, scan, redact, compliance-tag,
+# list-tools. Full surface is documented in apps/api/src/server.ts.
+#
+# Auth: Bearer API key (jks_...) issued from the JAK Shield dashboard.
+# See: https://github.com/inbharatai/jak-shield#installation
+
+openapi: 3.1.0
+
+info:
+  title: JAK Shield
+  description: >
+    Security gateway for AI agents. Evaluate planned tool calls, scan strings
+    for PII / secrets / prompt-injection, redact sensitive data, and emit
+    regulatory hints — all before the agent touches the real world.
+  version: '0.1.0'
+  license:
+    name: MIT
+    identifier: MIT
+  contact:
+    name: JAK Shield
+    url: https://github.com/inbharatai/jak-shield
+
+servers:
+  - url: 'https://YOUR_HOST/api'
+    description: >
+      Replace YOUR_HOST with the public hostname of your JAK Shield deployment.
+      For local-only use, point at http://localhost:4100/api.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /evaluate:
+    post:
+      operationId: evaluateToolCall
+      summary: Evaluate a planned tool call against JAK Shield policies
+      description: >
+        Returns a decision (allow / block / requires_approval / redact /
+        rewrite) with a full evidence tree, an HMAC signature, and compliance
+        hints. Does NOT execute the tool.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tool_name]
+              properties:
+                tool_name:
+                  type: string
+                  description: The MCP tool name (e.g. gmail.send_email, postgres.query, shell.run)
+                  example: gmail.send_email
+                args:
+                  type: object
+                  description: Args the agent intends to pass to the tool
+                  additionalProperties: true
+                  example: { to: "user@external.com", subject: "Records", body: "SSN 123-45-6789" }
+                context:
+                  $ref: '#/components/schemas/Context'
+                execute:
+                  type: boolean
+                  default: false
+                  description: If true, also execute the tool via the connector (otherwise the call is decided only)
+      responses:
+        '200':
+          description: A policy decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Decision'
+
+  /evaluate/scan:
+    post:
+      operationId: scanText
+      summary: Defense-in-depth scan for PII, secrets, and prompt-injection
+      description: >
+        Runs the full v2 scanner: regex + checksum-validated PII (28 types),
+        secret patterns, structural HTML/JSON injection, Unicode confusables,
+        base64/hex decoding, multilingual injection patterns (13 non-English
+        languages + English baseline).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+                  description: The string to scan
+      responses:
+        '200':
+          description: Scan results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanResult'
+
+  /evaluate/redact:
+    post:
+      operationId: redactSensitiveData
+      summary: Redact PII and secrets from a string or JSON object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Text to redact (pass either text OR object)
+                object:
+                  type: object
+                  description: JSON to walk recursively (pass either text OR object)
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Redacted output
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  redacted: { description: Same type as the input — string or object }
+                  findings:
+                    type: array
+                    description: List of detector findings with confidence + validators
+                    items: { $ref: '#/components/schemas/Finding' }
+
+  /evaluate/compliance-tag:
+    post:
+      operationId: complianceTag
+      summary: Tag a planned tool call with regulatory framework hints
+      description: >
+        Returns PCI / HIPAA / GDPR / CCPA / SOX / FERPA / DPDP signals with
+        confidence + citation. NOT a legal compliance determination — see the
+        disclaimer in the response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tool_name]
+              properties:
+                tool_name: { type: string }
+                args:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Compliance hints
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tags:
+                    type: array
+                    items: { type: string, enum: [PCI_DSS, HIPAA, GDPR, CCPA, SOX, FERPA, DPDP] }
+                  hints:
+                    type: array
+                    items: { $ref: '#/components/schemas/ComplianceHint' }
+                  disclaimer:
+                    type: string
+                    description: Required disclaimer text to surface to the end user
+
+  /connectors/tools:
+    get:
+      operationId: listProtectedTools
+      summary: Enumerate every tool registered behind JAK Shield
+      responses:
+        '200':
+          description: List of protected tools with risk class + JSON schema
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name: { type: string }
+                    description: { type: string }
+                    riskClass:
+                      type: string
+                      enum: [READ_ONLY, WRITE, EXTERNAL_SIDE_EFFECT, DESTRUCTIVE]
+                    inputSchema: { type: object, additionalProperties: true }
+
+  /approvals:
+    get:
+      operationId: listApprovals
+      summary: List approval requests for the tenant
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [PENDING, APPROVED, REJECTED, EXPIRED, DEFERRED]
+        - in: query
+          name: limit
+          required: false
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: Approval records
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Approval' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: 'jks_*'
+      description: API key from the JAK Shield dashboard. Format jks_<base64url>.
+
+  schemas:
+    Context:
+      type: object
+      description: Optional caller context
+      properties:
+        tenantId: { type: string }
+        userId: { type: string }
+        role:
+          type: string
+          enum: [EXTERNAL_AUDITOR, END_USER, REVIEWER, OPERATOR, TENANT_ADMIN]
+        agentId: { type: string }
+        sessionId: { type: string }
+        clientName: { type: string }
+
+    Decision:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [allow, block, requires_approval, redact, rewrite]
+        risk:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        reason: { type: string }
+        rule: { type: string, nullable: true }
+        safe_alternative: { type: string, nullable: true }
+        approval_id: { type: string, nullable: true }
+        signature: { type: string, description: HMAC-SHA256 over canonical decision }
+        decision_id: { type: string }
+        compliance:
+          type: array
+          items: { type: string }
+        provenance:
+          type: object
+          properties:
+            evidence:
+              type: array
+              items: { $ref: '#/components/schemas/Evidence' }
+            decidedBy: { type: string }
+            aggregateRiskScore: { type: number, minimum: 0, maximum: 1 }
+
+    Evidence:
+      type: object
+      properties:
+        source: { type: string }
+        weight: { type: number }
+        detail: { type: string }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        validators:
+          type: array
+          items: { type: string }
+
+    ScanResult:
+      type: object
+      properties:
+        injection:
+          type: object
+          properties:
+            detected: { type: boolean }
+            risk: { type: string, enum: [LOW, HIGH] }
+            confidence: { type: number }
+            evidence:
+              type: array
+              items:
+                type: object
+                properties:
+                  stage:
+                    type: string
+                    enum: [standard, structural, unicode, encoding, spaced, multilingual]
+                  pattern: { type: string }
+                  risk: { type: string, enum: [LOW, HIGH] }
+        pii:
+          type: object
+          properties:
+            findings:
+              type: array
+              items: { $ref: '#/components/schemas/Finding' }
+            maxConfidence: { type: number }
+            redacted: { type: string }
+        secrets:
+          type: object
+          properties:
+            found:
+              type: array
+              items: { type: string }
+            count: { type: integer }
+
+    Finding:
+      type: object
+      properties:
+        type: { type: string, description: e.g. SSN, AADHAAR, CREDIT_CARD, IBAN }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        validators:
+          type: array
+          items: { type: string }
+        contextHint: { type: string, nullable: true }
+        field: { type: string, nullable: true }
+
+    ComplianceHint:
+      type: object
+      properties:
+        framework:
+          type: string
+          enum: [PCI_DSS, HIPAA, GDPR, CCPA, SOX, FERPA, DPDP]
+        confidence: { type: number }
+        reason: { type: string }
+        citation: { type: string, description: CFR section or article reference }
+        evidence:
+          type: array
+          items: { type: string }
+
+    Approval:
+      type: object
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        toolName: { type: string }
+        argsRedacted:
+          type: object
+          additionalProperties: true
+        reason: { type: string }
+        risk: { type: string }
+        status: { type: string, enum: [PENDING, APPROVED, REJECTED, EXPIRED, DEFERRED] }
+        requestedAt: { type: string, format: date-time }
+        decidedAt: { type: string, format: date-time, nullable: true }
+        decidedBy: { type: string, nullable: true }
