@@ -77,7 +77,7 @@ Use [`.github/ISSUE_TEMPLATE/bug_report.md`](./.github/ISSUE_TEMPLATE/bug_report
 
 ## Reporting a security vulnerability
 
-**Do not** open a public GitHub issue. Email **security@jakshield.ai** and follow [`SECURITY.md`](./SECURITY.md).
+**Do not** open a public GitHub issue. Email **info@inbharat.ai** and follow [`SECURITY.md`](./SECURITY.md).
 
 ---
 

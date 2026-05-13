@@ -5,7 +5,7 @@ description = "JAK Shield adapter for LangChain — gate any LangChain agent's t
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-authors = [{ name = "JAK Shield", email = "hello@jakshield.ai" }]
+authors = [{ name = "JAK Shield", email = "info@inbharat.ai" }]
 keywords = ["langchain", "mcp", "ai-safety", "prompt-injection", "agent-security", "jak-shield"]
 classifiers = [
     "Development Status :: 3 - Alpha",

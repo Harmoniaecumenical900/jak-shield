@@ -14,7 +14,7 @@ JAK Shield is pre-1.0. We support the latest `main` and the most recent tagged r
 
 **Do not open a public GitHub issue.**
 
-Email **security@jakshield.ai** with:
+Email **info@inbharat.ai** with:
 
 - Affected component (e.g., `policy-engine`, `prompt-shield`, `connectors/shell`)
 - Affected version (commit hash if `main`)

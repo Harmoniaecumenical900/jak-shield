@@ -70,7 +70,7 @@ async function main() {
     delete json.private;
     json.version ??= '0.1.0';
     json.license ??= 'MIT';
-    json.author ??= { name: 'JAK Shield', email: 'hello@jakshield.ai' };
+    json.author ??= { name: 'JAK Shield', email: 'info@inbharat.ai' };
     json.repository = {
       type: 'git',
       url: 'git+' + REPO + '.git',

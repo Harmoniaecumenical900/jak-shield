@@ -27,7 +27,7 @@ identity / 2FA. The total wall-clock for you is ~30 minutes.
 | 8 | `npm login` + publish | **Scripts ready** — `scripts/prepare-npm-publish.mjs` + `scripts/publish-all.mjs` | After Row 7: run `npm login`, then `cd "C:\Users\reetu\Desktop\jak shield"`, then `node scripts/prepare-npm-publish.mjs && node scripts/publish-all.mjs --dry-run`. If clean, drop `--dry-run`. |
 | 9 | Submit to Smithery | **`smithery.yaml` ready** at repo root | Open https://smithery.ai → Sign in with GitHub → Submit Server → paste `inbharatai/jak-shield`. Smithery reads `smithery.yaml` automatically. |
 | 10 | Open awesome-mcp-servers PR | **Script ready** — `scripts/open-awesome-mcp-pr.sh` | `bash scripts/open-awesome-mcp-pr.sh`. Forks, branches, inserts entry, commits, pushes, opens PR with body from `.github/launch/AWESOME_MCP_PR_BODY.md`. |
-| 11 | Create Twitter `@jakshield` | **You only** — identity action | https://twitter.com/i/flow/signup. Use rotated Gmail + 2FA. |
+| 11 | Create Twitter `@reetur_aj` | **You only** — identity action | https://twitter.com/i/flow/signup. Use rotated Gmail + 2FA. |
 | 12 | Create Discord server | **You only** — identity action | https://discord.com/channels/@me → `+` → Create My Own → "JAK Shield" → channels: #welcome #announcements #contributors #bench-misses #deploy-help #general. |
 
 ---
@@ -113,7 +113,7 @@ Review the diff before it pushes if you want — it pauses after `git diff
 ## What's NOT in the launch checklist but I'd recommend
 
 - **`SECURITY.md`** — already exists at the repo root. Make sure your
-  reporting address (`security@jakshield.ai`) is real or change it before
+  reporting address (`info@inbharat.ai`) is real or change it before
   someone files a vulnerability advisory and it bounces.
 - **Branch protection on `main`** — Settings → Branches → add rule for
   `main` requiring PR + at least 1 approval. Stops you accidentally pushing
@@ -121,9 +121,9 @@ Review the diff before it pushes if you want — it pauses after `git diff
 - **`CODEOWNERS`** — auto-assign you as reviewer on every PR. One line:
   `* @inbharatai`.
 - **Discord invite link in README** — once Row 12 is done, replace the
-  `https://discord.gg/jakshield` badge link.
+  `https://github.com/inbharatai/jak-shield/discussions` badge link.
 - **Twitter handle in README** — once Row 11 is done, the Twitter badge
-  already points to `@jakshield`; just make sure that handle is yours.
+  already points to `@reetur_aj`; just make sure that handle is yours.
 
 ---
 

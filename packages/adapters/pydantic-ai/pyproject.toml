@@ -5,7 +5,7 @@ description = "JAK Shield adapter for Pydantic AI — gate any agent's tool call
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "JAK Shield", email = "hello@jakshield.ai" }]
+authors = [{ name = "JAK Shield", email = "info@inbharat.ai" }]
 keywords = ["pydantic-ai", "ai-safety", "prompt-injection", "agent-security", "jak-shield", "mcp"]
 classifiers = [
     "Development Status :: 3 - Alpha",

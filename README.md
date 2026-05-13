@@ -22,12 +22,12 @@
 [![OpenAI Agents](https://img.shields.io/badge/OpenAI_Agents_SDK-ready-10A37F?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
 [![VS Code](https://img.shields.io/badge/VS_Code-ready-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com)
 
-[![Twitter](https://img.shields.io/badge/follow-@jakshield-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/jakshield)
-[![Discord](https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/jakshield)
+[![Twitter](https://img.shields.io/badge/follow-@reetur_aj-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/reetur_aj)
+[![Discord](https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://github.com/inbharatai/jak-shield/discussions)
 [![Stars](https://img.shields.io/github/stars/inbharatai/jak-shield?style=for-the-badge&logo=github)](../../stargazers)
 [![Sponsor](https://img.shields.io/badge/♥-Sponsor-EA4AAA?style=for-the-badge)](https://github.com/sponsors/inbharatai)
 
-[**Quick start →**](#-quick-start)  ·  [**Live demo →**](#-30-second-demo)  ·  [**Docs →**](./docs)  ·  [**Discord →**](https://discord.gg/jakshield)
+[**Quick start →**](#-quick-start)  ·  [**Live demo →**](#-30-second-demo)  ·  [**Docs →**](./docs)  ·  [**Discord →**](https://github.com/inbharatai/jak-shield/discussions)
 
 </div>
 
@@ -745,14 +745,14 @@ Filesystem (sandboxed) · Shell (allowlist-gated) · Gmail · GitHub · Supabase
 
 JAK Shield is built in the open. Come help shape the future of AI agent security.
 
-- 💬 **[Discord](https://discord.gg/jakshield)** — chat with users + maintainers
-- 🐦 **[Twitter / X — @jakshield](https://twitter.com/jakshield)** — release news + threat research
-- 💼 **[LinkedIn](https://www.linkedin.com/company/jakshield)** — for the security buyers / CISOs
-- 🟧 **[r/jakshield](https://reddit.com/r/jakshield)** — long-form discussions
-- 📺 **[YouTube](https://youtube.com/@jakshield)** — demos + walkthroughs
-- 📨 **[hello@jakshield.ai](mailto:hello@jakshield.ai)** — for design partners + enterprise
-- 🛡️ **[security@jakshield.ai](mailto:security@jakshield.ai)** — responsible disclosure ([policy](./SECURITY.md))
-- 📖 **[Blog](https://jakshield.ai/blog)** — engineering posts + threat reports
+- 💬 **[GitHub Discussions](https://github.com/inbharatai/jak-shield/discussions)** — primary chat channel; tag the maintainer in any thread
+- 🐦 **[X / Twitter — @reetur_aj](https://twitter.com/reetur_aj)** — release news, threat research, build-in-public threads
+- 💼 **[LinkedIn — reetur-aj](https://www.linkedin.com/in/reetur-aj)** — for security buyers, CISOs, and adoption conversations
+- 🟧 **[Reddit — u/reetur_aj](https://reddit.com/user/reetur_aj)** — long-form posts + community discussion
+- 🎮 **Discord — `reetur_aj`** — DM the maintainer directly (no public server yet; ping in [Discussions](https://github.com/inbharatai/jak-shield/discussions) to get added when one launches)
+- 📷 **[Instagram — @unigurus](https://instagram.com/unigurus)** — behind-the-scenes + design previews
+- 📨 **[info@inbharat.ai](mailto:info@inbharat.ai)** — design partners, enterprise, and responsible-disclosure reports ([SECURITY.md](./SECURITY.md))
+- 📖 **[Release notes](https://github.com/inbharatai/jak-shield/discussions/categories/announcements)** — engineering posts + version drops
 
 ### #️⃣ Hashtags
 
