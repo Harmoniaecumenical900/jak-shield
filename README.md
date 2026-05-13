@@ -36,19 +36,31 @@
 
 ## 🛡️ Why JAK Shield exists
 
-In 2026 every AI agent — Claude, OpenAI, Cursor, the swarm you built last Tuesday — has the power to **send email, query Postgres, run shell commands, call GitHub, post to Slack, move money**. None of them ask first.
+In 2026 every AI agent — Claude, OpenAI, Cursor, VS Code Copilot, the LangChain / CrewAI / Vercel AI graph you shipped last Tuesday — has the power to **send email, query Postgres, run shell commands, call GitHub, post to Slack, move money**. None of them ask first.
 
 **One prompt injection in a webpage. One hallucinated `DROP TABLE`. One leaked SSN in an email body. One bad day.**
 
-JAK Shield sits between any MCP-compatible AI client and the real tools, intercepting every call:
+JAK Shield sits between any MCP-compatible AI client (or framework, via adapter) and the real tools, intercepting every call:
 
 ```
- AI Agent ─► JAK Shield ─► [policy engine + DLP + injection scan + approval] ─► real tool
+ AI Agent ─► JAK Shield ─► [policy engine + DLP + injection scan + taint + approval] ─► real tool
+                                ↑
+                          override (v0.2) · pause (v0.3) · always-on CRITICAL block
 ```
 
-It's the **MCP-native** security layer your agents need — open-source, deterministic, signed, auditable, and ~2 ms p95 end-to-end through MCP stdio.
+It's the **MCP-native** security layer your agents need — open-source, deterministic, signed, auditable, and **~2 ms p95** end-to-end through MCP stdio. The full pipeline is ten stages of which the deterministic engine has final say; the OpenAI classifier (when configured) advises but never overrides.
 
-> **New in v0.2 — block override with heightened scrutiny.** Every BLOCK now surfaces *what* was blocked, *why*, and the *worst case* if the block was wrong. The user can accept the risk on overridable blocks; CRITICAL rules (`rm -rf /`, `DROP TABLE` without `WHERE`, prod-deploy, payments) stay non-overridable. Accepting an override opens a **scrutiny window** — anomaly + taint thresholds tighten, warnings surface inline, any further block in that window is unconditionally hard-block. One-strike rule. Audit-logged with the human's user id and a written reason.
+> **What "the human stays in control" actually means here.**
+>
+> JAK Shield ships three escape hatches, each with a tighter scope than the one before:
+>
+> - **Per-call override** *(v0.2)* — every overridable BLOCK surfaces *what*, *why*, and the *worst case*. The user accepts the risk in writing (≥ 8 chars, audit-logged) via `shield.override_block`. Acceptance mints a single-use HMAC-signed token AND opens a **heightened-scrutiny window** for the next 10 calls — anomaly z-score drops 3.0 → 1.5, taint Jaccard drops 0.30 → 0.15, and any further block in the window is **unconditionally hard-block**. One-strike rule.
+> - **Bounded session/tenant pause** *(v0.3)* — for known-safe operational windows (migrations, debugging prod data, planned ops), `shield.pause` suspends non-CRITICAL blocks for **1–60 minutes** (default 15) with a written reason ≥ 20 chars. Pause auto-expires. Every decision during the window is annotated with `metadata.pausedState` for UI banners. When pause ends, the **same 10-call heightened-scrutiny window** kicks in.
+> - **`shield.stand_down`** — end the heightened-scrutiny window early when the task is done.
+>
+> **The bright line: CRITICAL rules never yield.** `rm -rf /`, `DROP TABLE` without `WHERE`, `mkfs`, fork bombs, prod-deploy without ticket, payment without idempotency, capability-token replay or tamper, offensive-cyber, prompt-injection input — none of these are overridable, pausable, or escapable. The user changes the request, not the verdict. Tested and enforced in code via `NEVER_OVERRIDABLE_RULES` (`packages/policy-engine/src/block-override.ts`) and `NEVER_PAUSABLE_RULES` (`packages/policy-engine/src/shield-pause.ts`).
+>
+> Every override and every pause is audit-logged with the human's user id and the written reason — see the [How blocks, approvals, overrides, and pause actually work](#-how-blocks-approvals-overrides-and-pause-actually-work) section for the full lifecycle.
 
 ---
 
