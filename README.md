@@ -6,7 +6,7 @@
 
 ### **The universal security gateway for AI agents.**
 
-*Every Claude / OpenAI / Cursor / VS Code tool call passes through Shield first.<br/>Block destructive actions, redact PII, detect prompt injection, require approval — before the agent touches the real world.*
+*Every Claude / OpenAI / Cursor / VS Code / LangChain / CrewAI tool call passes through Shield first.<br/>Block destructive actions, redact PII, detect prompt injection, require human approval — before the agent touches the real world.<br/>Override with scrutiny when you know better. Pause for bounded ops windows. **CRITICAL rules** (`rm -rf /`, `DROP TABLE`, prod-deploy, payments) **never yield.***
 
 <br/>
 
