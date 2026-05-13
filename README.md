@@ -10,6 +10,7 @@
 
 <br/>
 
+[![Release](https://img.shields.io/github/v/release/inbharatai/jak-shield?style=for-the-badge&logo=github&color=7C3AED)](../../releases/latest)
 [![CI](https://img.shields.io/github/actions/workflow/status/inbharatai/jak-shield/ci.yml?branch=main&label=CI&logo=github&style=for-the-badge)](../../actions)
 [![Tests](https://img.shields.io/badge/tests-179%20passing-brightgreen?style=for-the-badge)](#-test--benchmark-results)
 [![Adversarial Bench](https://img.shields.io/badge/adversarial%20bench-45%2F45-brightgreen?style=for-the-badge)](./bench/scenarios.json)
@@ -180,12 +181,34 @@ docker-compose up -d
 # API:           http://localhost:4100
 ```
 
-### Install via npm (when published)
+### One-click install via Smithery
+
+Once published to Smithery, JAK Shield is one-click installable into any compatible client (Claude Desktop, Cursor, Cline, Windsurf):
+
+> **https://smithery.ai/server/reetu004/jak-shield**  *(pending publish — see `docs/PUBLISH_TO_SMITHERY.md`)*
+
+Smithery handles config schema, secrets prompting (OpenAI key, encryption key, corporate domains), and the `.mcpb` install — driven by the [`smithery.yaml`](./smithery.yaml) at the repo root.
+
+### Install via npm
 
 ```bash
-npm install -g @jak-shield/mcp-server
-jak-shield-mcp                       # stdio transport
+npm install -g @jak-shield/mcp-server     # once published
+jak-shield-mcp                            # stdio transport
 ```
+
+Until then, install from the GitHub release:
+
+```bash
+# Download the .mcpb bundle from the v0.3.0 release
+curl -L -o jak-shield.mcpb https://github.com/inbharatai/jak-shield/releases/download/v0.3.0/jak-shield-0.3.0.mcpb
+# Double-click the .mcpb to install into Claude Desktop
+```
+
+### Download a specific release
+
+- **[v0.3.0](https://github.com/inbharatai/jak-shield/releases/tag/v0.3.0)** — latest · user-controlled pause + auto-resume
+- **[v0.2.0](https://github.com/inbharatai/jak-shield/releases/tag/v0.2.0)** — block override + heightened scrutiny
+- **[v0.1.0](https://github.com/inbharatai/jak-shield/releases/tag/v0.1.0)** — initial public release
 
 ---
 
