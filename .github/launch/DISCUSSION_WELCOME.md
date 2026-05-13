@@ -18,13 +18,13 @@ Every tool call goes through a deterministic policy pipeline before it touches G
 - HMAC-SHA256 signed decisions with key rotation
 - Regulatory hints (PCI / HIPAA / GDPR / SOX / FERPA / DPDP / CCPA) with citations + an explicit "this is not legal advice" disclaimer
 - 45-scenario adversarial benchmark passing 45/45 in CI
-- p95 evaluation latency 0.64 ms on a developer laptop (single tool call, in-process, no network)
+- p95 evaluation latency ~2.3 ms on a developer laptop (single tool call, in-process, no network)
 
 ## What it isn't
 
 - **Not a substitute for a lawyer.** The compliance hints are hints. The disclaimer in the code is real and matters.
 - **Not benchmarked head-to-head against Lakera Guard or Nightfall AI.** I have not run a like-for-like comparison and won't claim to have. JAK Shield has a different shape: it's MCP-native, runs in-process or as a sidecar you control, is open source, and lets you read every line of every rule. That doesn't make it better at every job — it makes the comparison apples-to-oranges.
-- **Not battle-tested at scale.** v0.1.0 is day zero of public use. The test suite is broad (147+ tests) and the bench is real, but production wear-in only comes from production.
+- **Not battle-tested at scale.** v0.1.0 is day zero of public use. The test suite is broad (130 unit + integration tests across the engine, DLP, prompt-shield, observability, and end-to-end) and the bench is real, but production wear-in only comes from production.
 - **Not a magic AI moderator.** The OpenAI classifier is an *advisor* that runs in parallel with the deterministic engine on a 1.5 s timeout. If the API is down, missing a key, or slow, the deterministic engine still produces the decision. Tests assert this.
 
 ## What I'd love help with

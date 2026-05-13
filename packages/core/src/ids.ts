@@ -11,3 +11,7 @@ export function newApprovalId(): string {
 export function newAuditId(): string {
   return `aud_${randomBytes(8).toString('hex')}`;
 }
+
+export function newId(prefix: string): string {
+  return `${prefix}_${randomBytes(8).toString('hex')}`;
+}

@@ -2,7 +2,7 @@
  * Extended pattern library — RAG-poisoning, tool-name spoofing, indirect
  * prompt injection, multi-language jailbreaks. Used by injection-detector-v2.
  *
- * Coverage: 12 languages × ~6 phrasings = ~80 multilingual patterns, plus
+ * Coverage: 13 non-English languages (es/fr/de/it/pt/ru/zh/ja/ko/hi/ar/tr/vi) plus an English baseline × ~6 phrasings = ~80 multilingual patterns, plus
  * ~25 RAG-poisoning / tool-spoof / indirect-injection patterns.
  */
 

@@ -25,6 +25,8 @@ import { evaluateAnomaly, recordCall } from './anomaly.js';
 import { detectAttackChain, recordSessionCall } from './attack-chains.js';
 import { checkArgsForTaint, isSensitiveSink } from './taint.js';
 import { tagCompliance } from './compliance.js';
+import { buildOverrideOffer, attachOverrideOffer } from './block-override.js';
+import { getScrutiny, tickScrutiny, addScrutinyWarning } from './heightened-scrutiny.js';
 
 export interface DecideOptions {
   rules?: PolicyRule[];
@@ -61,6 +63,12 @@ function decideInner(req: ToolCallRequest, options: DecideOptions = {}): PolicyD
     recordSessionCall(req.context.sessionId ?? req.context.requestId, req.toolName);
   }
 
+  // If the session is under heightened scrutiny from a previous override,
+  // surface that on every decision so callers know they're being watched.
+  const scrutinyState = req.context.sessionId
+    ? getScrutiny(req.context.tenantId, req.context.sessionId)
+    : null;
+
   const finish = (d: PolicyDecision, decidedBy: string): PolicyDecision => {
     const prov: DecisionProvenance = {
       evidence: [...evidence],
@@ -70,7 +78,30 @@ function decideInner(req: ToolCallRequest, options: DecideOptions = {}): PolicyD
         ? { used: !!options.classifierAdvice, agreed: options.classifierAdvice?.suggestedAction === d.action, advice: options.classifierAdvice }
         : undefined,
     };
-    return signDecision({ ...d, provenance: prov, decisionId: req.context.requestId, classifierAdvice: options.classifierAdvice ?? undefined });
+    let decision: PolicyDecision = { ...d, provenance: prov, decisionId: req.context.requestId, classifierAdvice: options.classifierAdvice ?? undefined };
+
+    // Decorate BLOCKs with override offer when permitted.
+    if (decision.action === DecisionAction.BLOCK) {
+      const offer = buildOverrideOffer({
+        decision,
+        tenantId: req.context.tenantId,
+        sessionId: req.context.sessionId,
+      });
+      decision = attachOverrideOffer(decision, offer);
+    }
+
+    // Decorate every decision under scrutiny so the client always sees state.
+    if (scrutinyState) {
+      decision.heightenedScrutiny = scrutinyState;
+    }
+
+    // Consume one scrutiny tick on any decision that actually executed
+    // through the pipeline (regardless of action). Skip in noTracking tests.
+    if (!options.noTracking && req.context.sessionId && scrutinyState) {
+      tickScrutiny(req.context.tenantId, req.context.sessionId);
+    }
+
+    return signDecision(decision);
   };
 
   // 1. Hard rules

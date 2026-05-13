@@ -28,7 +28,7 @@ PH wants a name, tagline, description, gallery, makers, topics. Below is the ful
 > 🧬 6-stage injection detection across 13 non-English languages plus English
 > 🧲 Cross-call taint tracking (novel for MCP)
 > 🔐 HMAC-signed decisions, capability tokens, audit trail
-> 📊 0.64 ms p95 latency, 45/45 adversarial benchmark
+> 📊 ~2.3 ms p95 latency, 45/45 adversarial benchmark
 >
 > 100% open-source MIT. Available right now via one command for Claude Desktop.
 >

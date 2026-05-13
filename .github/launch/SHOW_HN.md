@@ -28,7 +28,7 @@ The pitch in one sentence: every tool call passes through Shield first, where a 
 - **Attack-chain detection** — 20 multi-step patterns with data-flow tracking (output of step N appearing in args of step N+1 escalates the chain match)
 - HMAC-signed decisions with key rotation, full evidence-tree provenance, regulatory hints (PCI/HIPAA/GDPR/SOX/FERPA/DPDP with CFR/article citations and explicit "this is not legal compliance" disclaimer)
 - Prometheus metrics, rate limiting, circuit breakers, fail-boot in production with dev secrets
-- 147 unit + security tests, 45/45 adversarial benchmark, p95 latency 0.64 ms
+- 130 unit + security tests, 45/45 adversarial benchmark, p95 latency ~2.3 ms
 
 **What's explicitly NOT claimed:**
 

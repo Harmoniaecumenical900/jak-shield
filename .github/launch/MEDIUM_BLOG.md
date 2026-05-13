@@ -55,7 +55,7 @@ The pipeline order (which matters more than people think):
 10. Risk-class threshold
 11. (Optional) OpenAI classifier as advisor — never overrides a hard block
 
-Each stage emits structured evidence. The final decision carries a full evidence tree, an HMAC signature, and compliance hints. p95 latency end-to-end: 0.64 ms.
+Each stage emits structured evidence. The final decision carries a full evidence tree, an HMAC signature, and compliance hints. p95 latency end-to-end: ~2.3 ms.
 
 ## Three pieces I'm proud of
 

@@ -24,7 +24,7 @@ I spent the last few months building JAK Shield — an MCP-native gateway that s
 
 3. **Multi-stage injection detection across 13 non-English languages plus English.** Cyrillic confusables, base64-decoded payloads, HTML-comment-hidden instructions, Russian / Chinese / Hindi / Arabic all caught by separate detector stages.
 
-**Bench:** 45/45 adversarial scenarios pass. Repo includes the benchmark JSON, the runner, and a perf SLO check (p95 < 50 ms enforced in CI; actual measured 0.64 ms).
+**Bench:** 45/45 adversarial scenarios pass. Repo includes the benchmark JSON, the runner, and a perf SLO check (p95 < 50 ms enforced in CI; actual measured ~2.3 ms).
 
 Open-source MIT. Works with Claude Desktop today via one command. Repo + install + docs: https://github.com/inbharatai/jak-shield
 
@@ -40,7 +40,7 @@ Happy to take adversarial inputs — if you can evade the detectors I'll fix and
 
 **Body:**
 
-TypeScript / pnpm monorepo. 29 packages. 147 tests. 45-scenario adversarial benchmark in CI.
+TypeScript / pnpm monorepo. 32 packages. 130 tests. 45-scenario adversarial benchmark in CI.
 
 The architectural decision I'd love feedback on: should the policy engine sit between the agent and the tool (where I put it) or between the LLM API and the agent? Most AI-security products go the second route (Lakera, NeMo). I argue the first is the right place because that's where capability is acquired — but I'm curious if anyone has a counter.
 
@@ -50,7 +50,7 @@ Engineering highlights:
 - Decisions are HMAC-signed (with key-rotation slot for `JAK_SHIELD_DECISION_HMAC_PREVIOUS`)
 - Boot-time refusal if `NODE_ENV=production` is set with a dev secret
 - Taint tracking via MinHash with 32-dim signatures, Jaccard threshold 0.30
-- All 147 tests run in < 5 s; full clean rebuild + tests + bench in < 90 s
+- All 130 tests run in < 5 s; full clean rebuild + tests + bench in < 90 s
 
 Repo: https://github.com/inbharatai/jak-shield
 

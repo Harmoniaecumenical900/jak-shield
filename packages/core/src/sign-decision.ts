@@ -25,6 +25,24 @@ function previousSecret(): Buffer | null {
   return env ? Buffer.from(env, 'utf8') : null;
 }
 
+/**
+ * Stable, deterministic stringify that sorts keys at every level.
+ *
+ * Important: this is NOT the same as `JSON.stringify(obj, keysArray)` —
+ * that form uses the array as a recursive selector, which would strip nested
+ * properties whose keys aren't in the top-level array. Our previous
+ * implementation hit that bug and silently dropped the `override` nested
+ * object from the signed canonical form, meaning a caller could mutate
+ * `override.overridable` without invalidating the HMAC.
+ */
+function stableStringify(v: unknown): string {
+  if (v === null || typeof v !== 'object') return JSON.stringify(v);
+  if (Array.isArray(v)) return `[${v.map(stableStringify).join(',')}]`;
+  const obj = v as Record<string, unknown>;
+  const keys = Object.keys(obj).filter((k) => obj[k] !== undefined).sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(',')}}`;
+}
+
 function canonical(d: PolicyDecision): string {
   const fields = ['action', 'risk', 'reason', 'rule', 'safeAlternative', 'approvalId', 'decisionId'] as const;
   const obj: Record<string, unknown> = {};
@@ -40,7 +58,27 @@ function canonical(d: PolicyDecision): string {
       validators: e.validators,
     }));
   }
-  return JSON.stringify(obj, Object.keys(obj).sort());
+  // Override offer is signed so a downstream caller can't flip `overridable`
+  // from false to true without invalidating the HMAC.
+  if (d.override) {
+    obj.override = {
+      overridable: d.override.overridable,
+      scopedToRule: d.override.scopedToRule,
+      blockId: d.override.blockId,
+      scrutinyCalls: d.override.scrutinyCalls,
+      ttlSeconds: d.override.ttlSeconds,
+    };
+  }
+  // Heightened-scrutiny state is signed too — prevents a caller from claiming
+  // their session is NOT under scrutiny to dodge tighter thresholds.
+  if (d.heightenedScrutiny) {
+    obj.heightenedScrutiny = {
+      callsRemaining: d.heightenedScrutiny.callsRemaining,
+      triggeredBy: d.heightenedScrutiny.triggeredBy,
+      originalBlockId: d.heightenedScrutiny.originalBlockId,
+    };
+  }
+  return stableStringify(obj);
 }
 
 export function signDecision(d: PolicyDecision): PolicyDecision {

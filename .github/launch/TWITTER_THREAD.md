@@ -65,11 +65,11 @@ Three things I haven't seen anywhere else for MCP:
 **5/11 — the benchmark**
 
 📊 45/45 on a labelled adversarial corpus
-📊 147 unit + security tests passing
-📊 p95 decision latency: 0.64 ms
-📊 Throughput: 2 178 dec/sec on stock CPU
+📊 130 unit + security tests passing
+📊 p95 decision latency: ~2.3 ms (end-to-end through MCP stdio)
+📊 Throughput: ~860 dec/sec on stock CPU
 
-CI enforces a 50 ms p95 SLO. Current margin: 77×.
+CI enforces a 50 ms p95 SLO. Current margin: ~21×.
 
 The bench JSON ships in the repo — bring your evasions.
 
@@ -181,7 +181,7 @@ If you don't want a thread:
 
 > Shipped JAK Shield today — open-source MCP security gateway for AI agents.
 >
-> Blocks DROP TABLE, redacts PII, detects injection in 13 non-English languages plus English, all in 0.64 ms p95.
+> Blocks DROP TABLE, redacts PII, detects injection in 13 non-English languages plus English, all in ~2.3 ms p95.
 >
 > 45/45 adversarial benchmark. MIT.
 >

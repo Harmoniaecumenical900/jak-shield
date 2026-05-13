@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ApprovalStatus, AuditAction, AuditSeverity, RiskLevel, UserRole } from '@jak-shield/shared';
+import { ApprovalStatus, AuditAction, AuditSeverity, RiskLevel, UserRole, type PolicyDecision } from '@jak-shield/shared';
 
 /**
  * Convert a JSON-RPC supplied context (plain string fields) into the partial
@@ -28,7 +28,10 @@ import { getAuditLogger } from '@jak-shield/audit-log';
 import { listConnectorTools } from '@jak-shield/connectors-registry';
 import { decisionToJson, verifyDecisionSignature } from '@jak-shield/core';
 import {
+  acceptOverride,
   anomalySnapshot,
+  endScrutiny,
+  getScrutiny,
   issueCapability,
   taintSessionSnapshot,
   tagCompliance,
@@ -392,6 +395,135 @@ export const SHIELD_TOOLS: ShieldToolDefinition[] = [
         },
         secrets: { found: secrets.found, count: secrets.matches.length },
       };
+    },
+  },
+
+  {
+    name: 'shield.override_block',
+    description:
+      'Accept the risk on an overridable BLOCK decision and proceed. Returns a single-use override token AND starts a heightened-scrutiny window — the next ~10 tool calls in this session run with tightened anomaly + taint thresholds, and any further block in that window is NOT overridable. CRITICAL-risk blocks (e.g. rm -rf /, DROP TABLE without WHERE, prod-deploy without ticket) are never overridable; this tool returns an error for them. Audit-logged.',
+    inputSchema: z.object({
+      blocked_decision: z.record(z.unknown()).describe('The full PolicyDecision the BLOCK tool returned, including its signature and override field. Tampering will fail signature verification.'),
+      human_reason: z.string().min(8).describe('Why the human is overriding. Required, at least 8 characters. Logged verbatim.'),
+      accepted_by: z.string().describe('User id of the human accepting the risk. Logged.'),
+      context: ContextSchema,
+    }),
+    async handler(input) {
+      const i = input as {
+        blocked_decision: PolicyDecision;
+        human_reason: string;
+        accepted_by: string;
+        context?: Record<string, string>;
+      };
+      const ctx = makeContext(ctxFrom(i.context));
+      const sessionId = ctx.sessionId ?? ctx.requestId;
+      const result = acceptOverride({
+        blockedDecision: i.blocked_decision,
+        tenantId: ctx.tenantId,
+        sessionId,
+        humanReason: i.human_reason,
+        acceptedBy: i.accepted_by,
+      });
+
+      // Audit every override attempt — accepted or rejected.
+      try {
+        const auditor = getAuditLogger();
+        await auditor.log({
+          tenantId: ctx.tenantId,
+          userId: i.accepted_by,
+          action: AuditAction.POLICY_DECISION_OVERRIDDEN,
+          severity: result.ok ? AuditSeverity.WARN : AuditSeverity.INFO,
+          resource: i.blocked_decision.rule ?? 'unknown-rule',
+          details: result.ok
+            ? {
+                blockId: i.blocked_decision.decisionId,
+                sessionId,
+                expiresAt: result.expiresAt,
+                scrutinyCalls: result.scrutinyCalls,
+                reason: i.human_reason,
+              }
+            : {
+                blockId: i.blocked_decision.decisionId,
+                sessionId,
+                refusedReason: result.reason,
+                code: result.code,
+              },
+        });
+      } catch {
+        // Auditor failures shouldn't block the override response itself.
+      }
+
+      if (!result.ok) {
+        return {
+          ok: false,
+          code: result.code,
+          reason: result.reason,
+        };
+      }
+      return {
+        ok: true,
+        override_token: result.overrideToken,
+        expires_at: result.expiresAt,
+        scrutiny_calls: result.scrutinyCalls,
+        scrutiny_note:
+          'JAK Shield is still watching. Anomaly + taint thresholds are tightened for the next ' +
+          result.scrutinyCalls +
+          ' calls in this session. Any further block in that window is NOT overridable.',
+        audit_note: result.auditNote,
+      };
+    },
+  },
+
+  {
+    name: 'shield.scrutiny_status',
+    description:
+      'Inspect the heightened-scrutiny state for the current session — calls remaining, what triggered scrutiny, and any warnings accumulated since the override.',
+    inputSchema: z.object({ context: ContextSchema }),
+    async handler(input) {
+      const i = input as { context?: Record<string, string> };
+      const ctx = makeContext(ctxFrom(i.context));
+      const sessionId = ctx.sessionId ?? ctx.requestId;
+      const state = getScrutiny(ctx.tenantId, sessionId);
+      if (!state) {
+        return { active: false, session: sessionId };
+      }
+      return {
+        active: true,
+        session: sessionId,
+        calls_remaining: state.callsRemaining,
+        triggered_by: state.triggeredBy,
+        original_block_id: state.originalBlockId,
+        thresholds: state.thresholds,
+        warnings: state.warnings,
+      };
+    },
+  },
+
+  {
+    name: 'shield.stand_down',
+    description:
+      'End the heightened-scrutiny window early for this session. Use when the override is complete and you want normal thresholds restored before the call counter expires. Audit-logged.',
+    inputSchema: z.object({ context: ContextSchema }),
+    async handler(input) {
+      const i = input as { context?: Record<string, string> };
+      const ctx = makeContext(ctxFrom(i.context));
+      const sessionId = ctx.sessionId ?? ctx.requestId;
+      const wasActive = !!getScrutiny(ctx.tenantId, sessionId);
+      endScrutiny(ctx.tenantId, sessionId);
+      try {
+        const auditor = getAuditLogger();
+        await auditor.log({
+          tenantId: ctx.tenantId,
+          userId: ctx.userId,
+          action: AuditAction.SCRUTINY_ENDED,
+          severity: AuditSeverity.INFO,
+          resource: 'scrutiny:stand_down',
+          details: { sessionId, wasActive },
+        });
+      } catch {
+        /* audit failures shouldn't block the response */
+      }
+      return { ok: true, session: sessionId, was_active: wasActive };
     },
   },
 ];

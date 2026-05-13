@@ -11,9 +11,9 @@
 <br/>
 
 [![CI](https://img.shields.io/github/actions/workflow/status/inbharatai/jak-shield/ci.yml?branch=main&label=CI&logo=github&style=for-the-badge)](../../actions)
-[![Tests](https://img.shields.io/badge/tests-147%20passing-brightgreen?style=for-the-badge)](#-test--benchmark-results)
+[![Tests](https://img.shields.io/badge/tests-164%20passing-brightgreen?style=for-the-badge)](#-test--benchmark-results)
 [![Adversarial Bench](https://img.shields.io/badge/adversarial%20bench-45%2F45-brightgreen?style=for-the-badge)](./bench/scenarios.json)
-[![Decision Latency](https://img.shields.io/badge/p95%20latency-0.64ms-blue?style=for-the-badge)](./bench/perf-bench.mjs)
+[![Decision Latency](https://img.shields.io/badge/p95%20latency-~2.3ms-blue?style=for-the-badge)](./bench/perf-bench.mjs)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](./LICENSE)
 
 [![MCP](https://img.shields.io/badge/Model_Context_Protocol-1.29-7C3AED?style=for-the-badge&logo=anthropic&logoColor=white)](https://modelcontextprotocol.io)
@@ -45,7 +45,9 @@ JAK Shield sits between any MCP-compatible AI client and the real tools, interce
  AI Agent ─► JAK Shield ─► [policy engine + DLP + injection scan + approval] ─► real tool
 ```
 
-It's the **MCP-native** security layer your agents need — open-source, deterministic, signed, auditable, and < 1 ms per decision.
+It's the **MCP-native** security layer your agents need — open-source, deterministic, signed, auditable, and ~2 ms p95 end-to-end through MCP stdio.
+
+> **New in v0.2 — block override with heightened scrutiny.** Every BLOCK now surfaces *what* was blocked, *why*, and the *worst case* if the block was wrong. The user can accept the risk on overridable blocks; CRITICAL rules (`rm -rf /`, `DROP TABLE` without `WHERE`, prod-deploy, payments) stay non-overridable. Accepting an override opens a **scrutiny window** — anomaly + taint thresholds tighten, warnings surface inline, any further block in that window is unconditionally hard-block. One-strike rule. Audit-logged with the human's user id and a written reason.
 
 ---
 
@@ -77,6 +79,28 @@ Agent:  uses gmail.send_email with body containing SSN 123-45-6789, Aadhaar 2341
 
 Same payload sent through any other MCP client *without* Shield — quietly leaves your network.
 
+**Override path** (new in v0.2):
+
+```
+You:    "I vetted partner@external.com yesterday — accept the risk and send."
+
+Agent:  shield.override_block({
+          blocked_decision: <signed BLOCK from above>,
+          human_reason: "Partner@external.com is vendor on contract since 2025-09; legal-cleared.",
+          accepted_by: "reetu"
+        })
+
+🛡️ JAK Shield response:
+   ok:                 true
+   override_token:     eyJhbGciOi...  (single-use, 60 s TTL)
+   scrutiny_calls:     10
+   scrutiny_note:      "Anomaly + taint thresholds tightened for the next 10 calls
+                        in this session. Any further block is NOT overridable."
+   audit_note:         OVERRIDE_ACCEPTED tenant=t1 session=s1 rule=external-email-pii ...
+```
+
+If the same agent then tries to delete the customer table 30 seconds later, the override does *not* save it — that BLOCK is now hard, no second chance until you `shield.stand_down` or the window expires.
+
 ---
 
 ## 🚀 Quick start
@@ -90,7 +114,7 @@ pnpm install && pnpm build
 node scripts/install-claude-desktop-mcp.mjs   # auto-wires Claude Desktop
 ```
 
-Restart Claude Desktop. Ask: *"What jak-shield tools do you have?"* — you'll see 38 tools.
+Restart Claude Desktop. Ask: *"What jak-shield tools do you have?"* — you'll see **23 shield primitives** + the connector wrappers (Gmail, GitHub, Postgres, Supabase, shell, filesystem, browser, HTTP, Slack, SMS, webhook, Google Drive, social).
 
 ### 🌍 Works with any MCP-compatible AI client (and most others via adapter)
 
@@ -225,6 +249,14 @@ jak-shield-mcp                       # stdio transport
 - Graceful SIGTERM/SIGINT shutdown
 - Boot-time refusal in `NODE_ENV=production` if dev secrets detected
 
+### 🛂 Block override + heightened scrutiny *(new)*
+- Every BLOCK decision surfaces *what* and *why* it was blocked, plus an **override offer** if the rule isn't on the hard-stop list
+- CRITICAL-class blocks (`rm -rf /`, `DROP TABLE` without `WHERE`, prod-deploy without ticket, payment without idempotency, capability-token replay, etc.) are **never overridable** — change the request, not the verdict
+- Accepting an override mints a single-use HMAC-signed token AND opens a **heightened-scrutiny window** for the next 5–10 calls in the session: anomaly z-score threshold drops 3.0 → 1.5, taint Jaccard threshold drops 0.30 → 0.15, and any further block in the window is **not overridable**
+- Every override (accepted or refused) is audit-logged with the human's user id + free-text reason ≥ 8 chars
+- New MCP tools: `shield.override_block`, `shield.scrutiny_status`, `shield.stand_down`
+- Override field is included in the signed canonical form — tampering with `overridable` invalidates the HMAC
+
 </td>
 </tr>
 </table>
@@ -238,7 +270,7 @@ flowchart LR
     A[AI Client<br/>Claude · OpenAI · Cursor · VS Code] -->|MCP stdio/HTTP| B[JAK Shield MCP Server]
     B --> C{decide&#40;&#41;}
     C --> D[Hard rules<br/>block]
-    C --> E[Injection v2<br/>6 stages, 12 langs]
+    C --> E[Injection v2<br/>6 stages, 13+EN langs]
     C --> F[Taint tracker<br/>MinHash n-grams]
     C --> G[Attack-chain<br/>20 patterns]
     C --> H[Soft rules<br/>approval/redact]
@@ -253,7 +285,7 @@ flowchart LR
     M --> Q[Prometheus]
 ```
 
-Decision pipeline runs in **< 1 ms p95** on stock CPU. Full architecture: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+Decision pipeline end-to-end (MCP stdio + serialization + policy + signing) runs in **~2–3 ms p95** on stock CPU, well under the 50 ms SLO. Full architecture: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ---
 
@@ -263,11 +295,11 @@ These numbers come from `pnpm build && pnpm test && pnpm bench && node bench/per
 
 | Suite | Result |
 |---|---|
-| Clean build | **29/29 packages** ✅ |
-| Unit + security tests | **147/147 passing** ✅ |
+| Clean build | **32/32 packages** ✅ |
+| Unit + security tests | **164 tests passing** (52 dlp + 52 policy-engine incl. 17 new override/scrutiny + 22 e2e security + 20 injection-v2 + 10 sign-decision + 8 observability) ✅ |
 | `pnpm bench` adversarial scenarios | **45/45 (100 %)** ✅ |
-| `bench/perf-bench.mjs` (1000 iter) | **2 178 dec/sec** · p50 **0.44 ms** · p95 **0.64 ms** · p99 **1.28 ms** · max **2.82 ms** ✅ |
-| Decision SLO | p95 < 50 ms — **77× margin** |
+| `bench/perf-bench.mjs` (1000 iter, end-to-end through MCP stdio) | ~**860 dec/sec** · p50 ~**1.0 ms** · p95 ~**2.3 ms** · p99 ~**3.9 ms** · max ~**5.5 ms** ✅ — measured live, three runs, stable. Earlier README quoted **0.64 ms p95**; that measurement was from a faster prior environment and no longer reproduces, so it has been corrected. |
+| Decision SLO | p95 < 50 ms — **~21× margin** |
 
 ```text
 ========== JAK SHIELD ADVERSARIAL BENCHMARK ==========
@@ -297,7 +329,7 @@ We won't oversell. From our own [audit](./docs/AUDIT.md):
 - ❌ **Not certified for any regulatory framework.** The compliance module emits *signals*, not legal classifications. A qualified officer must confirm scope.
 - ❌ **No SOC 2, no pentest, no customer reference yet.** Pre-customer, by design — open-source first.
 - ❌ **Not "better than Lakera / Nightfall."** We never measured head-to-head. They have ML-trained models we don't. We're shaped differently — MCP-native, deterministic, fully open.
-- ✅ **What is true:** The engine is fast, well-tested, signed, modular, and runs the entire pipeline in < 1 ms p95. The taint tracker + capability tokens are genuinely novel for MCP.
+- ✅ **What is true:** The engine is fast, well-tested, signed, modular, and runs the end-to-end MCP decision pipeline at ~2–3 ms p95 — well under the 50 ms SLO. The taint tracker + capability tokens are genuinely novel for MCP.
 
 If you're a regulated buyer — bank, hospital, school — talk to us before deploying. We'll be honest about what's ready and what isn't.
 
@@ -310,14 +342,14 @@ If you're a regulated buyer — bank, hospital, school — talk to us before dep
 | MCP-native | ✅ | ✅ | ❌ | partial | ❌ |
 | Open source | ✅ | partial | ❌ | ❌ | ❌ |
 | Deterministic policy engine | ✅ | minimal | ❌ | partial | ❌ |
-| Prompt-injection detection | ✅ (6 stages, 12 langs) | ❌ | ✅ (ML) | partial | ❌ |
+| Prompt-injection detection | ✅ (6 stages, 13 non-English langs + English) | ❌ | ✅ (ML) | partial | ❌ |
 | PII detection | ✅ (28 types + checksums) | ❌ | ❌ | ❌ | ✅ (ML) |
 | Taint tracking across calls | ✅ *(novel)* | ❌ | ❌ | ❌ | ❌ |
 | Multi-step attack chains | ✅ (20 patterns + data-flow) | ❌ | ❌ | ❌ | ❌ |
 | Capability tokens | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Tamper-evident decisions | ✅ HMAC + key rotation | ❌ | ❌ | ❌ | ❌ |
 | Decision provenance / evidence tree | ✅ | ❌ | partial | ❌ | partial |
-| < 1 ms p95 decision | ✅ | n/a | unknown | unknown | unknown |
+| < 5 ms p95 decision end-to-end | ✅ (~2.3 ms) | n/a | unknown | unknown | unknown |
 | Self-hosted | ✅ | ✅ | ❌ | ❌ | ❌ |
 | SOC 2 | ❌ *(pre-customer)* | ✅ | ✅ | ✅ | ✅ |
 

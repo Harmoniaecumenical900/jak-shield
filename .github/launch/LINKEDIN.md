@@ -34,7 +34,7 @@ What it does:
 
 📊 Prometheus metrics, rate limiting, circuit breakers, fail-boot on dev secrets in production.
 
-Performance: 0.64 ms p95 per decision. 2 178 decisions per second on stock CPU. 45/45 adversarial benchmark scenarios pass.
+Performance: ~2.3 ms p95 per decision. ~860 dec/second on stock CPU. 45/45 adversarial benchmark scenarios pass.
 
 I'll be candid about what JAK Shield is NOT today:
 

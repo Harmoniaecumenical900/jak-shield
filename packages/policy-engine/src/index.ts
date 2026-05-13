@@ -8,3 +8,6 @@ export * from './anomaly.js';
 export * from './attack-chains.js';
 export * from './capability-tokens.js';
 export * from './compliance.js';
+export * from './heightened-scrutiny.js';
+export * from './block-override.js';
+export * from './accept-override.js';
