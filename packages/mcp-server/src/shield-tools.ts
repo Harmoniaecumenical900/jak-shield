@@ -29,13 +29,17 @@ import { listConnectorTools } from '@jak-shield/connectors-registry';
 import { decisionToJson, verifyDecisionSignature } from '@jak-shield/core';
 import {
   acceptOverride,
+  activePauseFor,
   anomalySnapshot,
+  beginPause,
   endScrutiny,
   getScrutiny,
   issueCapability,
+  resumeShield,
   taintSessionSnapshot,
   tagCompliance,
   verifyCapability,
+  type PauseScope,
 } from '@jak-shield/policy-engine';
 import { evaluateAndMaybeExecute, makeContext } from './evaluate.js';
 
@@ -495,6 +499,142 @@ export const SHIELD_TOOLS: ShieldToolDefinition[] = [
         original_block_id: state.originalBlockId,
         thresholds: state.thresholds,
         warnings: state.warnings,
+      };
+    },
+  },
+
+  {
+    name: 'shield.pause',
+    description:
+      'Pause JAK Shield for a bounded window. The user explicitly accepts the risk; the gateway will suppress NON-CRITICAL blocks for the duration. CRITICAL rules (rm -rf /, DROP TABLE without WHERE, prod-deploy without ticket, payment without idempotency, offensive-cyber, capability-token replay) STILL fire even during pause. Max duration 60 min, default 15 min. Requires a written reason of at least 20 chars. Audit-logged at start, on each call during the window, and at end. When the pause ends (auto or manual), the next 10 calls in the session run under heightened scrutiny.',
+    inputSchema: z.object({
+      scope: z.enum(['session', 'tenant', 'user']).default('session').describe('Scope of the pause. session = this session only (recommended). user = all sessions for this user. tenant = entire tenant (broadest, most caution).'),
+      reason: z.string().min(20).describe('Why JAK Shield is being paused. At least 20 characters. Logged verbatim.'),
+      duration_minutes: z.number().int().min(1).max(60).default(15).describe('Pause duration in minutes. Hard-capped at 60.'),
+      also_enforce_rules: z.array(z.string()).default([]).describe('Rules to keep enforcing even during pause (in addition to the hard-coded NEVER_PAUSABLE set). Use this to scope the pause narrowly.'),
+      context: ContextSchema,
+    }),
+    async handler(input) {
+      const i = input as {
+        scope: PauseScope;
+        reason: string;
+        duration_minutes: number;
+        also_enforce_rules: string[];
+        context?: Record<string, string>;
+      };
+      const ctx = makeContext(ctxFrom(i.context));
+      const sessionId = ctx.sessionId ?? ctx.requestId;
+      const result = beginPause({
+        tenantId: ctx.tenantId,
+        sessionId: i.scope === 'session' ? sessionId : undefined,
+        userId: ctx.userId,
+        scope: i.scope,
+        reason: i.reason,
+        durationMs: i.duration_minutes * 60 * 1000,
+        alsoEnforceRules: i.also_enforce_rules,
+      });
+
+      try {
+        const auditor = getAuditLogger();
+        await auditor.log({
+          tenantId: ctx.tenantId,
+          userId: ctx.userId,
+          action: AuditAction.SCRUTINY_STARTED,
+          severity: result.ok ? AuditSeverity.WARN : AuditSeverity.INFO,
+          resource: `shield-pause:${i.scope}`,
+          details: result.ok
+            ? { pauseId: result.pauseId, scope: i.scope, durationMs: result.durationMs, reason: i.reason, alsoEnforceRules: i.also_enforce_rules }
+            : { refusedReason: result.reason, code: result.code },
+        });
+      } catch { /* audit failures shouldn't block the response */ }
+
+      if (!result.ok) {
+        return { ok: false, code: result.code, reason: result.reason };
+      }
+      return {
+        ok: true,
+        pause_id: result.pauseId,
+        scope: result.scope,
+        expires_at: result.expiresAt,
+        duration_minutes: Math.round(result.durationMs / 60000),
+        warning: result.warning,
+      };
+    },
+  },
+
+  {
+    name: 'shield.resume',
+    description:
+      'End an active pause early. Triggers heightened scrutiny on the session (next 10 calls run with tightened thresholds). Audit-logged.',
+    inputSchema: z.object({
+      scope: z.enum(['session', 'tenant', 'user']).default('session'),
+      context: ContextSchema,
+    }),
+    async handler(input) {
+      const i = input as { scope: PauseScope; context?: Record<string, string> };
+      const ctx = makeContext(ctxFrom(i.context));
+      const sessionId = ctx.sessionId ?? ctx.requestId;
+      const result = resumeShield({
+        tenantId: ctx.tenantId,
+        sessionId: i.scope === 'session' ? sessionId : undefined,
+        userId: ctx.userId,
+        scope: i.scope,
+      });
+
+      try {
+        const auditor = getAuditLogger();
+        await auditor.log({
+          tenantId: ctx.tenantId,
+          userId: ctx.userId,
+          action: AuditAction.SCRUTINY_ENDED,
+          severity: AuditSeverity.INFO,
+          resource: `shield-resume:${i.scope}`,
+          details: result.ok
+            ? { pauseId: result.pauseId, durationActualMs: result.durationActualMs, callsObserved: result.callsObserved, scrutinyStarted: result.scrutinyStarted }
+            : { refusedReason: result.reason, code: result.code },
+        });
+      } catch { /* audit failures shouldn't block the response */ }
+
+      if (!result.ok) {
+        return { ok: false, code: result.code, reason: result.reason };
+      }
+      return {
+        ok: true,
+        pause_id: result.pauseId,
+        duration_actual_seconds: Math.round(result.durationActualMs / 1000),
+        calls_observed: result.callsObserved,
+        scrutiny_started: result.scrutinyStarted,
+        note: result.scrutinyStarted
+          ? 'JAK Shield is back on duty. The next 10 calls in this session run under heightened scrutiny (anomaly + taint thresholds tightened).'
+          : 'JAK Shield is back on duty.',
+      };
+    },
+  },
+
+  {
+    name: 'shield.pause_status',
+    description:
+      'Inspect the active pause state for the current scope (session/user/tenant). Returns active=false if not paused. Use this to surface a "JAK Shield is paused" banner in your UI.',
+    inputSchema: z.object({ context: ContextSchema }),
+    async handler(input) {
+      const i = input as { context?: Record<string, string> };
+      const ctx = makeContext(ctxFrom(i.context));
+      const sessionId = ctx.sessionId ?? ctx.requestId;
+      const state = activePauseFor(ctx.tenantId, sessionId, ctx.userId);
+      if (!state) {
+        return { active: false, scope: null };
+      }
+      return {
+        active: true,
+        scope: state.scope,
+        pause_id: state.pauseId,
+        reason: state.reason,
+        triggered_by: state.triggeredBy,
+        started_at: state.startedAt,
+        expires_at: state.expiresAt,
+        ms_remaining: state.msRemaining,
+        calls_observed: state.callsObserved,
+        also_enforce_rules: state.alsoEnforceRules,
       };
     },
   },

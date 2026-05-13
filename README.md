@@ -11,7 +11,7 @@
 <br/>
 
 [![CI](https://img.shields.io/github/actions/workflow/status/inbharatai/jak-shield/ci.yml?branch=main&label=CI&logo=github&style=for-the-badge)](../../actions)
-[![Tests](https://img.shields.io/badge/tests-164%20passing-brightgreen?style=for-the-badge)](#-test--benchmark-results)
+[![Tests](https://img.shields.io/badge/tests-179%20passing-brightgreen?style=for-the-badge)](#-test--benchmark-results)
 [![Adversarial Bench](https://img.shields.io/badge/adversarial%20bench-45%2F45-brightgreen?style=for-the-badge)](./bench/scenarios.json)
 [![Decision Latency](https://img.shields.io/badge/p95%20latency-~2.3ms-blue?style=for-the-badge)](./bench/perf-bench.mjs)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](./LICENSE)
@@ -249,13 +249,23 @@ jak-shield-mcp                       # stdio transport
 - Graceful SIGTERM/SIGINT shutdown
 - Boot-time refusal in `NODE_ENV=production` if dev secrets detected
 
-### 🛂 Block override + heightened scrutiny *(new)*
+### 🛂 Block override + heightened scrutiny *(v0.2)*
 - Every BLOCK decision surfaces *what* and *why* it was blocked, plus an **override offer** if the rule isn't on the hard-stop list
 - CRITICAL-class blocks (`rm -rf /`, `DROP TABLE` without `WHERE`, prod-deploy without ticket, payment without idempotency, capability-token replay, etc.) are **never overridable** — change the request, not the verdict
 - Accepting an override mints a single-use HMAC-signed token AND opens a **heightened-scrutiny window** for the next 5–10 calls in the session: anomaly z-score threshold drops 3.0 → 1.5, taint Jaccard threshold drops 0.30 → 0.15, and any further block in the window is **not overridable**
 - Every override (accepted or refused) is audit-logged with the human's user id + free-text reason ≥ 8 chars
-- New MCP tools: `shield.override_block`, `shield.scrutiny_status`, `shield.stand_down`
+- MCP tools: `shield.override_block`, `shield.scrutiny_status`, `shield.stand_down`
 - Override field is included in the signed canonical form — tampering with `overridable` invalidates the HMAC
+
+### ⏸️ User-controlled pause + resume *(v0.3 — new)*
+- For when you know exactly what you're doing — running a migration, debugging prod data, working through a known-safe ops window — and per-call override is too much friction
+- `shield.pause` suspends NON-CRITICAL blocks for a bounded window (1–60 min, default 15). Required: written reason ≥ 20 chars. Optional: `scope` (session / user / tenant) and `also_enforce_rules` for narrow scoping.
+- **CRITICAL rules STILL fire even during pause** — `rm -rf /`, `DROP TABLE` without `WHERE`, prod-deploy without ticket, payment without idempotency, offensive-cyber, capability-token replay, prompt-injection input. These are hard-coded non-pausable. The user changes the request, not the verdict.
+- Pause is **time-bounded and auto-expires**. No "indefinite off." Max 60 minutes per request.
+- Every decision during a pause window is decorated with `metadata.pausedState` so UIs can show a prominent "JAK Shield is paused (14 min remaining)" banner
+- When the pause ends (auto or manual via `shield.resume`), the session enters **heightened scrutiny** for the next 10 calls — same tightened thresholds as the override flow. Pause + scrutiny is the post-window guardrail.
+- Audit-logged at pause start, on each suppressed block during the window, and at pause end
+- MCP tools: `shield.pause`, `shield.resume`, `shield.pause_status`
 
 </td>
 </tr>
@@ -296,7 +306,7 @@ These numbers come from `pnpm build && pnpm test && pnpm bench && node bench/per
 | Suite | Result |
 |---|---|
 | Clean build | **32/32 packages** ✅ |
-| Unit + security tests | **164 tests passing** (52 dlp + 52 policy-engine incl. 17 new override/scrutiny + 22 e2e security + 20 injection-v2 + 10 sign-decision + 8 observability) ✅ |
+| Unit + security tests | **179 tests passing** (52 dlp + 67 policy-engine incl. 17 override/scrutiny + 15 shield-pause + 22 e2e security + 20 injection-v2 + 10 sign-decision + 8 observability) ✅ |
 | `pnpm bench` adversarial scenarios | **45/45 (100 %)** ✅ |
 | `bench/perf-bench.mjs` (1000 iter, end-to-end through MCP stdio) | ~**860 dec/sec** · p50 ~**1.0 ms** · p95 ~**2.3 ms** · p99 ~**3.9 ms** · max ~**5.5 ms** ✅ — measured live, three runs, stable. Earlier README quoted **0.64 ms p95**; that measurement was from a faster prior environment and no longer reproduces, so it has been corrected. |
 | Decision SLO | p95 < 50 ms — **~21× margin** |
@@ -371,6 +381,7 @@ If you're a regulated buyer — bank, hospital, school — talk to us before dep
 | Multi-step attack chain detection | ✅ 20 patterns + data-flow | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Behavioural anomaly (EWMA + z-score) | ✅ per-tenant + per-agent | ❌ | ❌ | ❌ | partial | ❌ | ❌ |
 | **Block override + heightened scrutiny** *(v0.2)* | ✅ one-strike rule | ❌ binary allow/deny | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **User-controlled pause + auto-resume** *(v0.3)* | ✅ scoped, time-bounded, CRITICAL still fires | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Scoped capability tokens | ✅ HMAC JWT, single-use, args-bound | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Tamper-evident (HMAC + key rotation) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Decision provenance / evidence tree | ✅ structured per stage | ❌ | partial (returns reasons) | partial | ❌ | ✅ via tracing | partial |
@@ -406,20 +417,21 @@ These are not mutually exclusive — many teams run two of these together. Use t
 
 ### Where JAK Shield is uniquely the only choice
 
-Six things JAK Shield does that I haven't found in any of the products above as of writing (please open an issue if you find one — the table updates fast):
+Seven things JAK Shield does that I haven't found in any of the products above as of writing (please open an issue if you find one — the table updates fast):
 
 1. **Cross-call taint tracking with MinHash + n-gram fingerprinting.** Untrusted bytes from `browser.fetch` flow into `gmail.send_email` and JAK Shield notices. No other MCP-layer guardrail I can find does this.
 2. **20 multi-step attack-chain patterns with data-flow boost.** Sequence detection across recent tool calls — "recon → exfiltrate," "credential-harvest → external-send," etc. — with the prior call's output substring as an escalation signal.
 3. **Block override with heightened-scrutiny window.** Hard-block / soft-block / approve isn't enough. v0.2 adds: overridable blocks surface what + why + worst-case; CRITICAL stay non-overridable; accepting an override tightens thresholds for the next 5–10 calls; one-strike rule on subsequent blocks during the window.
-4. **HMAC-signed decisions with key rotation and tamper-evident canonical form.** Every decision is signed; flipping `override.overridable` post-signing invalidates the HMAC (this is tested).
-5. **Single-use capability tokens bound to (tenant, tool, args-hash).** Short-lived JWTs you mint after an approval; intercepted tokens can't be replayed.
-6. **Regulatory hints with citations + an explicit "not legal advice" disclaimer surfaced inline on every decision.** Most products either say nothing or claim certification. Honest middle ground.
+4. **User-controlled pause + auto-resume with mandatory scrutiny on exit.** *(v0.3, new.)* The user can suspend non-CRITICAL blocks for 1–60 min — for migrations, debugging, known-safe windows — but CRITICAL rules still fire even during pause, pause auto-expires (no "indefinite off"), and the session enters heightened scrutiny when pause ends. The pause itself is audit-logged and every suppressed block during the window is logged.
+5. **HMAC-signed decisions with key rotation and tamper-evident canonical form.** Every decision is signed; flipping `override.overridable` post-signing invalidates the HMAC (this is tested).
+6. **Single-use capability tokens bound to (tenant, tool, args-hash).** Short-lived JWTs you mint after an approval; intercepted tokens can't be replayed.
+7. **Regulatory hints with citations + an explicit "not legal advice" disclaimer surfaced inline on every decision.** Most products either say nothing or claim certification. Honest middle ground.
 
 ---
 
 ## 🧰 The MCP toolbox
 
-JAK Shield exposes **23 `shield.*` security tools** + **14 protected connectors** to any MCP client (`grep -c "name: 'shield\\." packages/mcp-server/src/shield-tools.ts` to verify):
+JAK Shield exposes **26 `shield.*` security tools** + **14 protected connectors** to any MCP client (`grep -c "name: 'shield\\." packages/mcp-server/src/shield-tools.ts` to verify):
 
 <details>
 <summary><b>Shield tools (click to expand)</b></summary>
@@ -445,6 +457,9 @@ JAK Shield exposes **23 `shield.*` security tools** + **14 protected connectors*
 | `shield.override_block` *(v0.2)* | Accept the risk on an overridable block → mints single-use override token + opens scrutiny window |
 | `shield.scrutiny_status` *(v0.2)* | Inspect heightened-scrutiny state for the current session — calls remaining, warnings accumulated |
 | `shield.stand_down` *(v0.2)* | End the heightened-scrutiny window early (after the override task completes) |
+| `shield.pause` *(v0.3)* | Pause JAK Shield for a bounded window (1–60 min, default 15). Suppresses NON-CRITICAL blocks; CRITICAL rules still fire. Required reason ≥ 20 chars. Audit-logged. |
+| `shield.resume` *(v0.3)* | End an active pause early. Triggers heightened scrutiny for the next 10 calls. |
+| `shield.pause_status` *(v0.3)* | Inspect the active pause state — scope, time remaining, calls observed under pause. |
 
 </details>
 

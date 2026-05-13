@@ -27,6 +27,7 @@ import { checkArgsForTaint, isSensitiveSink } from './taint.js';
 import { tagCompliance } from './compliance.js';
 import { buildOverrideOffer, attachOverrideOffer } from './block-override.js';
 import { getScrutiny, tickScrutiny, addScrutinyWarning } from './heightened-scrutiny.js';
+import { activePauseFor, tickPauseObserved, shouldYieldToPause } from './shield-pause.js';
 
 export interface DecideOptions {
   rules?: PolicyRule[];
@@ -80,6 +81,54 @@ function decideInner(req: ToolCallRequest, options: DecideOptions = {}): PolicyD
     };
     let decision: PolicyDecision = { ...d, provenance: prov, decisionId: req.context.requestId, classifierAdvice: options.classifierAdvice ?? undefined };
 
+    // Shield pause: if a pause is active AND this is a BLOCK AND the rule
+    // is not on the never-pausable hard list AND not explicitly excluded
+    // from this pause, flip the decision to ALLOW with a `pausedState`
+    // annotation so the caller knows. CRITICAL rules still fire — those
+    // are in NEVER_PAUSABLE_RULES inside shield-pause.ts.
+    const pauseState = req.context.tenantId
+      ? activePauseFor(req.context.tenantId, req.context.sessionId, req.context.userId)
+      : null;
+    if (
+      pauseState &&
+      decision.action === DecisionAction.BLOCK &&
+      decision.rule &&
+      shouldYieldToPause(decision.rule, pauseState)
+    ) {
+      // Convert block → allow-while-paused. Keep the original rule + reason
+      // in metadata so the caller can see what *would have* fired.
+      decision = {
+        ...decision,
+        action: DecisionAction.ALLOW,
+        reason: `[PAUSED] ${decision.reason} — block suppressed by active pause (${pauseState.scope}, expires ${new Date(pauseState.expiresAt).toISOString()})`,
+        metadata: {
+          ...(decision.metadata ?? {}),
+          paused: true,
+          pauseId: pauseState.pauseId,
+          pauseScope: pauseState.scope,
+          pauseExpiresAt: pauseState.expiresAt,
+          originalAction: 'block',
+          originalRule: decision.rule,
+        },
+      };
+    }
+
+    // Always annotate the decision with pause state so the caller sees it
+    // even on ALLOWs / REDACTs. UI surfaces "JAK Shield is paused" banner.
+    if (pauseState) {
+      decision.metadata = {
+        ...(decision.metadata ?? {}),
+        pausedState: {
+          active: true,
+          scope: pauseState.scope,
+          pauseId: pauseState.pauseId,
+          msRemaining: pauseState.msRemaining,
+          reason: pauseState.reason,
+          triggeredBy: pauseState.triggeredBy,
+        },
+      };
+    }
+
     // Decorate BLOCKs with override offer when permitted.
     if (decision.action === DecisionAction.BLOCK) {
       const offer = buildOverrideOffer({
@@ -99,6 +148,11 @@ function decideInner(req: ToolCallRequest, options: DecideOptions = {}): PolicyD
     // through the pipeline (regardless of action). Skip in noTracking tests.
     if (!options.noTracking && req.context.sessionId && scrutinyState) {
       tickScrutiny(req.context.tenantId, req.context.sessionId);
+    }
+
+    // Tick pause-observed counter — drives scrutiny-on-resume.
+    if (!options.noTracking && pauseState) {
+      tickPauseObserved(req.context.tenantId, req.context.sessionId, req.context.userId);
     }
 
     return signDecision(decision);

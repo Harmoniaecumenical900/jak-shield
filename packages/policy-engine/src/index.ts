@@ -11,3 +11,4 @@ export * from './compliance.js';
 export * from './heightened-scrutiny.js';
 export * from './block-override.js';
 export * from './accept-override.js';
+export * from './shield-pause.js';

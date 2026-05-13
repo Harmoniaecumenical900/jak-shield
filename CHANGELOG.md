@@ -4,6 +4,54 @@ All notable changes to JAK Shield are documented here. Format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added — User-controlled pause + resume (v0.3 headline)
+
+The companion feature to v0.2's per-call block override: when a user knows
+exactly what they're doing for a bounded window (running a migration,
+debugging prod data, working through a known-safe ops window), per-call
+override is too much friction. v0.3 adds session/user/tenant-scoped pause:
+
+- `shield.pause` — suspends NON-CRITICAL blocks for 1–60 minutes (default
+  15). Required: written reason ≥ 20 chars. Optional scope (session
+  default; can also pause user-wide or tenant-wide for ops scenarios).
+  Optional `also_enforce_rules` lets you keep specific blocks active even
+  during pause for narrow scoping.
+- **CRITICAL rules STILL fire even during pause.** Hard-coded
+  `NEVER_PAUSABLE_RULES` set includes `rm -rf /`, `DROP TABLE` without
+  `WHERE`, prod-deploy without ticket, payment without idempotency,
+  capability-token replay/tamper, offensive-cyber, and
+  prompt-injection-input. The user changes the request, not the verdict.
+- **Pause is time-bounded and auto-expires.** Maximum 60 minutes per
+  request. There is no "indefinite off." If the user forgets to resume,
+  scrutiny opens on auto-expiry.
+- **Every decision during a pause window** carries a `metadata.pausedState`
+  field with `active`, `scope`, `pauseId`, `msRemaining`, `reason`, and
+  `triggeredBy` so client UIs can show a prominent banner.
+- **When pause ends** (auto or manual via `shield.resume`), the session
+  enters **heightened scrutiny** for the next 10 calls — same tightened
+  thresholds as the v0.2 override flow (anomaly z-score 3.0 → 1.5, taint
+  Jaccard 0.30 → 0.15).
+- **Audit-logged** at start (severity WARN), on every suppressed block
+  during the window (with the original block reason + rule preserved in
+  `metadata.originalRule` / `metadata.originalAction`), and at end.
+- New MCP tools: `shield.pause`, `shield.resume`, `shield.pause_status`.
+- 15 new tests in `packages/policy-engine/src/__tests__/shield-pause.test.ts`
+  covering: CRITICAL non-pausability, also-enforce-rules carve-out, hard
+  caps on duration + reason, scope precedence (session > user > tenant),
+  auto-expiry, scrutiny-on-resume, double-pause refusal.
+
+This is a deliberately conservative version of "stop the shield." A
+malicious actor with access to `shield.pause` could only:
+
+  - Suppress non-CRITICAL blocks for up to 60 minutes
+  - With a permanent audit trail of who, when, why, and what fired anyway
+  - With heightened scrutiny kicking in immediately after
+  - Without affecting CRITICAL rules, which still hard-stop their attack
+
+That's the safety envelope — broad enough that legitimate use cases
+(migrations, ops windows) work without per-call friction, narrow enough
+that the worst case is still bounded.
+
 ### Added — Block override + heightened scrutiny (the headline feature)
 
 The hardest design call in any guardrail system is: what happens when the
