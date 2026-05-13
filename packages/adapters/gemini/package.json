@@ -1,6 +1,6 @@
 {
   "name": "@jak-shield/gemini",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "JAK Shield adapter for Google Gemini. Wraps shield tools as Gemini FunctionDeclarations and provides a function-call dispatcher.",
   "type": "module",
   "main": "./dist/index.js",

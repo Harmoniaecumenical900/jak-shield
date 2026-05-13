@@ -1,6 +1,6 @@
 [project]
 name = "jak-shield-pydantic-ai"
-version = "0.1.0"
+version = "0.3.0"
 description = "JAK Shield adapter for Pydantic AI — gate any agent's tool calls through JAK Shield's policy engine"
 readme = "README.md"
 requires-python = ">=3.10"

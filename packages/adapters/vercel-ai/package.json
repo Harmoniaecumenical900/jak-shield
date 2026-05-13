@@ -1,6 +1,6 @@
 {
   "name": "@jak-shield/vercel-ai",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "JAK Shield adapter for the Vercel AI SDK. Wraps shield tools as `tool()` definitions and exposes a gate() wrapper for existing tools.",
   "type": "module",
   "main": "./dist/index.js",
