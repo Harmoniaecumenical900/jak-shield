@@ -337,27 +337,89 @@ If you're a regulated buyer — bank, hospital, school — talk to us before dep
 
 ## 🆚 How it compares
 
-|  | JAK Shield | Anthropic native approvals | Lakera Guard | Cloudflare AI Gateway | Nightfall AI |
-|---|---|---|---|---|---|
-| MCP-native | ✅ | ✅ | ❌ | partial | ❌ |
-| Open source | ✅ | partial | ❌ | ❌ | ❌ |
-| Deterministic policy engine | ✅ | minimal | ❌ | partial | ❌ |
-| Prompt-injection detection | ✅ (6 stages, 13 non-English langs + English) | ❌ | ✅ (ML) | partial | ❌ |
-| PII detection | ✅ (28 types + checksums) | ❌ | ❌ | ❌ | ✅ (ML) |
-| Taint tracking across calls | ✅ *(novel)* | ❌ | ❌ | ❌ | ❌ |
-| Multi-step attack chains | ✅ (20 patterns + data-flow) | ❌ | ❌ | ❌ | ❌ |
-| Capability tokens | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Tamper-evident decisions | ✅ HMAC + key rotation | ❌ | ❌ | ❌ | ❌ |
-| Decision provenance / evidence tree | ✅ | ❌ | partial | ❌ | partial |
-| < 5 ms p95 decision end-to-end | ✅ (~2.3 ms) | n/a | unknown | unknown | unknown |
-| Self-hosted | ✅ | ✅ | ❌ | ❌ | ❌ |
-| SOC 2 | ❌ *(pre-customer)* | ✅ | ✅ | ✅ | ✅ |
+> **The honest framing first.** JAK Shield has **never been benchmarked
+> head-to-head** against any of the products below. They're all good tools
+> with different shapes. The table maps capabilities, not winners. Some of
+> these (Lakera, Nightfall) have years of ML-trained models we don't have.
+> Some (Cloudflare, PortKey) sit in a completely different place in the
+> stack. Some (NeMo, Guardrails AI) are open-source peers with overlapping
+> but non-identical scope.
+
+### Where each product sits in the stack
+
+| Product | Shape | Sits between |
+|---|---|---|
+| **JAK Shield** | Open-source MCP server (or sidecar) | the agent and the *tools* it calls |
+| **Anthropic native approvals** | Built into Claude Desktop / Claude Code | Claude and the user, when a tool wants to run |
+| **Lakera Guard** | Hosted API, SDK + REST | the app and the *LLM*, or app and user input |
+| **Nightfall AI** | Hosted API + SaaS connectors | data sources (Slack, Drive) and the network |
+| **Cloudflare AI Gateway** | HTTP proxy | the app and the *LLM provider* |
+| **NeMo Guardrails** (NVIDIA, open-source) | Python framework | the chain and the LLM call, programmable via Colang |
+| **Guardrails AI** (open-source) | Python validators | LLM output and the app, declarative checks |
+| **Promptfoo** (open-source) | CLI + eval framework | dev-time, not runtime — for testing prompts/guards |
+
+### Capability matrix
+
+|  | JAK Shield | Anthropic approvals | Lakera Guard | Nightfall | Cloudflare AI Gateway | NeMo Guardrails | Guardrails AI |
+|---|---|---|---|---|---|---|---|
+| Ships as MCP server | ✅ stdio + HTTP | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Open source (MIT/Apache) | ✅ MIT | partial (SDK only) | ❌ | ❌ | ❌ | ✅ Apache | ✅ Apache |
+| Deterministic policy engine | ✅ TS rules | minimal (allow-list in settings.json) | ❌ ML-first | ❌ ML-first | partial | ✅ Colang DSL | ✅ declarative validators |
+| Prompt-injection detection | ✅ 6 stages, 13+EN langs, ReDoS-guarded | ❌ | ✅ ML model | partial (2024+) | partial | ✅ via LLM judge | partial via integrations |
+| PII detection | ✅ 28 types + cryptographic checksums | ❌ | ✅ ML | ✅ ML (core product) | ❌ | partial via plugins | partial via validators |
+| Taint tracking across calls | ✅ MinHash + n-gram *(novel for MCP)* | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Multi-step attack chain detection | ✅ 20 patterns + data-flow | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Behavioural anomaly (EWMA + z-score) | ✅ per-tenant + per-agent | ❌ | ❌ | ❌ | partial | ❌ | ❌ |
+| **Block override + heightened scrutiny** *(v0.2)* | ✅ one-strike rule | ❌ binary allow/deny | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Scoped capability tokens | ✅ HMAC JWT, single-use, args-bound | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Tamper-evident (HMAC + key rotation) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Decision provenance / evidence tree | ✅ structured per stage | ❌ | partial (returns reasons) | partial | ❌ | ✅ via tracing | partial |
+| Regulatory hints w/ citations | ✅ PCI / HIPAA / GDPR / SOX / FERPA / DPDP / CCPA + disclaimer | ❌ | ❌ | ✅ (legal-mode UX) | ❌ | ❌ | ❌ |
+| Self-hosted runtime | ✅ stdio in-process or HTTP | ✅ Claude Desktop local | ❌ hosted | ❌ hosted | ❌ hosted | ✅ | ✅ |
+| Adversarial bench in repo | ✅ 45 scenarios, 45/45 | ❌ | ❌ (private corpus) | ❌ | ❌ | partial (example tests) | partial (validator examples) |
+| End-to-end p95 latency in repo | ✅ ~2.3 ms (`bench/perf-bench.mjs`) | n/a | unknown — typical ML inference 50–200 ms | unknown | network-bound | depends on LLM judge | varies per validator |
+| SOC 2 / pentest report | ❌ pre-customer | ✅ (Anthropic corporate) | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Customer reference logos | ❌ none yet | n/a | ✅ | ✅ | ✅ | partial | partial |
+| Pre-built MCP connectors (Gmail, Postgres, shell, …) | ✅ 14 | ❌ user wires their own | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+✅ = present and shipping  ·  partial = exists but narrower than the comparison column  ·  ❌ = not present in current public docs as of writing
+
+### Pick the right tool for the job
+
+These are not mutually exclusive — many teams run two of these together. Use this as a starting frame, not a decree:
+
+- **JAK Shield** is the right fit when **the threat is the tool call itself** — destructive SQL, accidental email to the wrong recipient, an agent that just got prompt-injected by a webpage about to send your customer list to `attacker@evil.com`. If you run agents that touch real systems (Gmail, Postgres, GitHub, shell, browser, payments), and you want a deterministic, signed, self-hosted gateway with full audit trail and human-in-the-loop overrides, this is the shape you want.
+
+- **Anthropic native approvals** is right when **you only use Claude Desktop / Claude Code, you trust the user to read every approval prompt, and your blast radius is your own laptop.** It's free, it's built in, it's enough for a lot of solo use. If you start needing per-tenant policy, audit beyond the desktop log, or anything multi-user — you've outgrown it.
+
+- **Lakera Guard** is right when **the threat is the LLM input/output, not the tool boundary** — chatbots, customer-facing assistants, content moderation at scale. They have ML-trained injection and PII models that catch nuance regex won't. If you're building a chatbot, not an agent, look at Lakera before JAK Shield.
+
+- **Nightfall AI** is right when **the threat is data leaving regulated systems** — SaaS connectors (Slack, Drive, Confluence), email DLP, regulated-industry compliance. Cloud DLP is their core competence. If your job is "stop PII from leaving Slack," Nightfall first.
+
+- **Cloudflare AI Gateway** is right when **you want rate-limiting, caching, observability between your app and OpenAI/Anthropic** — it's an LLM gateway, not a security gateway. Different problem.
+
+- **NeMo Guardrails** is right when **you want a programmable Colang DSL for conversational rails inside a chain**. Open source, NVIDIA-backed, mature. If you're using Python and NeMo's other models, this snaps in.
+
+- **Guardrails AI** is right when **you want declarative LLM-output validators**: "this output must match this Pydantic schema, contain no PII, be < 200 tokens." Different shape — output-side, post-LLM, pre-app.
+
+- **Promptfoo** is right at **build time, not runtime** — eval your prompts and your guardrails against attack corpora. Pairs with JAK Shield: use Promptfoo to test JAK Shield's rules.
+
+### Where JAK Shield is uniquely the only choice
+
+Six things JAK Shield does that I haven't found in any of the products above as of writing (please open an issue if you find one — the table updates fast):
+
+1. **Cross-call taint tracking with MinHash + n-gram fingerprinting.** Untrusted bytes from `browser.fetch` flow into `gmail.send_email` and JAK Shield notices. No other MCP-layer guardrail I can find does this.
+2. **20 multi-step attack-chain patterns with data-flow boost.** Sequence detection across recent tool calls — "recon → exfiltrate," "credential-harvest → external-send," etc. — with the prior call's output substring as an escalation signal.
+3. **Block override with heightened-scrutiny window.** Hard-block / soft-block / approve isn't enough. v0.2 adds: overridable blocks surface what + why + worst-case; CRITICAL stay non-overridable; accepting an override tightens thresholds for the next 5–10 calls; one-strike rule on subsequent blocks during the window.
+4. **HMAC-signed decisions with key rotation and tamper-evident canonical form.** Every decision is signed; flipping `override.overridable` post-signing invalidates the HMAC (this is tested).
+5. **Single-use capability tokens bound to (tenant, tool, args-hash).** Short-lived JWTs you mint after an approval; intercepted tokens can't be replayed.
+6. **Regulatory hints with citations + an explicit "not legal advice" disclaimer surfaced inline on every decision.** Most products either say nothing or claim certification. Honest middle ground.
 
 ---
 
 ## 🧰 The MCP toolbox
 
-JAK Shield exposes **20 `shield.*` security tools** + **24 protected connectors** to any MCP client:
+JAK Shield exposes **23 `shield.*` security tools** + **14 protected connectors** to any MCP client (`grep -c "name: 'shield\\." packages/mcp-server/src/shield-tools.ts` to verify):
 
 <details>
 <summary><b>Shield tools (click to expand)</b></summary>
@@ -380,6 +442,9 @@ JAK Shield exposes **20 `shield.*` security tools** + **24 protected connectors*
 | `shield.block_action` | Voluntary block + audit |
 | `shield.rewrite_safe_action` | Suggest a safer rewrite |
 | `shield.list_protected_tools` | Enumerate connectors |
+| `shield.override_block` *(v0.2)* | Accept the risk on an overridable block → mints single-use override token + opens scrutiny window |
+| `shield.scrutiny_status` *(v0.2)* | Inspect heightened-scrutiny state for the current session — calls remaining, warnings accumulated |
+| `shield.stand_down` *(v0.2)* | End the heightened-scrutiny window early (after the override task completes) |
 
 </details>
 
