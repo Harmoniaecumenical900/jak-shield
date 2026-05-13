@@ -246,8 +246,8 @@ Deploy the JAK Shield HTTP transport to Railway. Steps:
 4. railway add postgresql                  # for audit log + approvals
 5. railway up                              # builds + deploys
 
-   The Dockerfile to use is packaging/docker/Dockerfile.mcp-http if it
-   exists; if not, stop and tell me — I'll add one before retrying.
+   The Dockerfile is `Dockerfile.mcp` at the repo root (already exists).
+   `railway.json` points Railway at it automatically.
 
 6. railway domain                          # generates a *.up.railway.app
 7. Set env vars via Railway dashboard (the CLI flow is finicky):
