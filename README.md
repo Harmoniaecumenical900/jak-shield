@@ -299,6 +299,275 @@ Decision pipeline end-to-end (MCP stdio + serialization + policy + signing) runs
 
 ---
 
+## 🚦 How blocks, approvals, overrides, and pause actually work
+
+Every tool call gets one of five outcomes. Here's what each looks like on the wire and how to handle it.
+
+### The five outcomes at a glance
+
+| Action | When it happens | What you do |
+|---|---|---|
+| `allow` | Safe call, no signals | Connector executes, you get the result |
+| `redact` | PII detected but the call is otherwise fine | Connector executes with redacted args (e.g. SSN → `***-**-6789`) |
+| `requires_approval` | Risky but not destructive (external email, social publish, etc.) | A reviewer must approve via dashboard or `shield.check_approval` |
+| `block` | Destructive / known-attack pattern | Call refused. If overridable, you get an offer with the worst-case spelled out |
+| `rewrite` | Classifier proposed a safer alternative | Use the suggested rewrite or refine your prompt |
+
+CRITICAL-class blocks (`rm -rf /`, `DROP TABLE` without `WHERE`, prod-deploy without ticket, payment without idempotency, capability-token replay, offensive-cyber, prompt-injection input) are **never** overridable and **never** yield to pause. They're the bright line.
+
+---
+
+### Flow 1 — Approval (the most common "I'm not sure" case)
+
+Trigger: agent calls `gmail.send_email` to an external domain with PII in the body.
+
+```jsonc
+// 1. Agent's tool call goes through Shield first
+{
+  "tool": "shield.evaluate_tool_call",
+  "args": {
+    "tool_name": "gmail.send_email",
+    "args": { "to": "partner@external.com", "subject": "Q4 roster", "body": "SSN 123-45-6789..." }
+  }
+}
+
+// 2. Shield's decision
+{
+  "action": "requires_approval",
+  "rule": "external-email-pii",
+  "risk": "HIGH",
+  "reason": "External email to partner@external.com contains SSN, AADHAAR, STUDENT_RECORD",
+  "compliance": ["GDPR", "FERPA", "HIPAA"],
+  "approval_id": "apr_a1b2c3d4e5f6",
+  "signature": "d8e709423cb1a0..."  // HMAC-verified
+}
+
+// 3. A reviewer decides (dashboard or API)
+POST /api/approvals/apr_a1b2c3d4e5f6/decide  { "decision": "approve", "decided_by": "reetu" }
+// or
+{ "tool": "shield.check_approval", "args": { "approval_id": "apr_a1b2c3d4e5f6" } }
+// → returns { "status": "APPROVED", "decided_by": "reetu", "decided_at": "..." }
+
+// 4. Agent re-invokes with the approved approval_id
+{ "tool": "shield.proxy_tool_call", "args": { "tool_name": "gmail.send_email", "args": {...}, "approval_id": "apr_a1b2c3d4e5f6" } }
+// → executes, audit-logged
+```
+
+Approvals time out (default 24 h). Pending approvals are visible at `/approvals` in the dashboard.
+
+---
+
+### Flow 2 — Block override *(v0.2)* — when YOU know the block is wrong
+
+Trigger: same `gmail.send_email` to a vendor your team vetted yesterday but Shield doesn't know about.
+
+```jsonc
+// 1. Shield blocks
+{
+  "action": "block",
+  "rule": "external-email-pii",
+  "risk": "HIGH",
+  "reason": "External email contains SSN...",
+  "override": {
+    "overridable": true,
+    "humanReason": "External email contains SSN...",
+    "worstCase": "Email could leak PII to an external recipient who is not your customer or vendor.",
+    "scrutinyCalls": 10,
+    "ttlSeconds": 60,
+    "scopedToRule": "external-email-pii",
+    "blockId": "blk_xyz"
+  },
+  "signature": "d8e7..."  // HMAC covers the override fields too
+}
+
+// 2. You accept the risk in writing
+{
+  "tool": "shield.override_block",
+  "args": {
+    "blocked_decision": <the entire block decision from step 1>,
+    "human_reason": "partner@external.com is a vendor on contract since 2025-09; legal-cleared yesterday",
+    "accepted_by": "reetu"
+  }
+}
+
+// 3. Shield mints a single-use override token + opens scrutiny window
+{
+  "ok": true,
+  "override_token": "eyJhbGciOi...",  // single-use, 60s TTL
+  "scrutiny_calls": 10,
+  "scrutiny_note": "JAK Shield is still watching. Anomaly + taint thresholds are tightened for the next 10 calls in this session. Any further block is NOT overridable."
+}
+
+// 4. Next call passes the token — bypasses *this rule for this exact args hash*
+{ "tool": "shield.proxy_tool_call", "args": { "tool_name": "gmail.send_email", "args": {...}, "override_token": "eyJ..." } }
+```
+
+**What if you try to override a CRITICAL block?**
+
+```jsonc
+// Shield blocks DROP TABLE — risk=CRITICAL, rule=dangerous-sql-drop-without-where
+// Note: the response has NO `override` field at all — that's how you know it's not overridable
+
+// You try anyway:
+{ "tool": "shield.override_block", "args": {...} }
+// →
+{ "ok": false, "code": "NO_OFFER", "reason": "This block did not come with an override offer. CRITICAL-risk blocks and certain rules are intentionally non-overridable." }
+```
+
+You change the request, not the verdict.
+
+---
+
+### Flow 3 — Pause *(v0.3)* — when you know you'll be doing risky-looking work for a window
+
+Trigger: you're running a planned database migration that includes a few `TRUNCATE TABLE` calls Shield would normally block. The override flow (10 calls of grace) isn't enough.
+
+```jsonc
+// 1. Pause the session for up to 60 minutes
+{
+  "tool": "shield.pause",
+  "args": {
+    "scope": "session",
+    "reason": "Running planned Q4 migration tested in staging — known safe window for next 30 min",
+    "duration_minutes": 30,
+    "also_enforce_rules": ["external-email-pii"]  // still block PII leaks even during the window
+  }
+}
+
+// 2. Shield acknowledges + warns
+{
+  "ok": true,
+  "pause_id": "pause_abc123",
+  "scope": "session",
+  "expires_at": 1747142400000,
+  "duration_minutes": 30,
+  "warning": "JAK Shield is paused for 30 minute(s). CRITICAL-risk rules (rm -rf /, DROP TABLE without WHERE, prod-deploy without ticket, payment without idempotency, offensive-cyber, capability-token replay) STILL fire. When the pause ends, the next 10 calls run under heightened scrutiny."
+}
+
+// 3. While paused — non-CRITICAL blocks suppressed, every decision carries pausedState
+{
+  "action": "allow",
+  "reason": "[PAUSED] Browser scrape of suspicious URL — block suppressed by active pause (session, expires 2026-05-13T15:00:00Z)",
+  "metadata": {
+    "paused": true,
+    "originalAction": "block",
+    "originalRule": "browser-scrape",
+    "pausedState": {
+      "active": true,
+      "scope": "session",
+      "msRemaining": 1750000,
+      "reason": "Running planned Q4 migration...",
+      "triggeredBy": "reetu"
+    }
+  }
+}
+
+// 4. CRITICAL rules STILL fire — even during pause
+{ "tool": "shield.proxy_tool_call", "args": { "tool_name": "postgres.query", "args": { "sql": "DROP TABLE users" } } }
+// → action: "block", rule: "dangerous-sql-drop-without-where", risk: "CRITICAL"
+//   (no override offer — never bypassable)
+
+// 5. Done early? Resume manually
+{ "tool": "shield.resume", "args": { "scope": "session" } }
+// →
+{
+  "ok": true,
+  "duration_actual_seconds": 412,
+  "calls_observed": 7,
+  "scrutiny_started": true,
+  "note": "JAK Shield is back on duty. The next 10 calls in this session run under heightened scrutiny..."
+}
+
+// 6. If you don't resume, pause auto-expires at expires_at. Scrutiny still opens.
+```
+
+Pause is **scoped, time-bounded, audited, and CRITICAL-immune** — the worst case for a malicious actor with `shield.pause` is suppressing non-CRITICAL blocks for at most 60 min with a permanent audit trail and heightened scrutiny kicking in immediately after.
+
+---
+
+### Flow 4 — Heightened scrutiny window (the after-state)
+
+After every override-accept OR every pause-end, the session enters a **heightened scrutiny window** for the next 10 calls (or 15 minutes, whichever expires first). During that window:
+
+| Threshold | Normal | Under scrutiny |
+|---|---|---|
+| Anomaly z-score | 3.0 | **1.5** (catches more outliers) |
+| Taint Jaccard | 0.30 | **0.15** (catches fuzzier matches of overridden data) |
+| Any further block | Eligible for override | **NOT overridable** (one-strike rule) |
+| Every decision | Returned as normal | Carries `heightenedScrutiny` field so UIs surface "still watching" |
+
+Check the state any time:
+
+```jsonc
+{ "tool": "shield.scrutiny_status", "args": { "context": { "sessionId": "s1", "tenantId": "t1" } } }
+// →
+{
+  "active": true,
+  "calls_remaining": 7,
+  "triggered_by": "external-email-pii",
+  "thresholds": { "anomalyZScore": 1.5, "taintJaccard": 0.15 },
+  "warnings": [...]
+}
+```
+
+End scrutiny early when the override task is complete:
+
+```jsonc
+{ "tool": "shield.stand_down", "args": { "context": {...} } }
+```
+
+---
+
+### What gets audit-logged
+
+Every state transition emits a structured audit entry. Query via `apps/api`'s `/api/audit` endpoint:
+
+| Event | When | Severity |
+|---|---|---|
+| `POLICY_DECISION` | Every tool call | INFO |
+| `TOOL_CALL_BLOCKED` | Action = block | WARN |
+| `APPROVAL_REQUESTED` | Action = requires_approval | INFO |
+| `APPROVAL_GRANTED` / `_REJECTED` / `_EXPIRED` | Reviewer decision or timeout | INFO / WARN |
+| `POLICY_DECISION_OVERRIDDEN` | Override accepted (or refused) | WARN / INFO |
+| `SCRUTINY_STARTED` | Pause begins or override accepted | WARN |
+| `SCRUTINY_WARNING` | Detector fired during scrutiny window | INFO |
+| `SCRUTINY_ENDED` | Scrutiny window closes (manual or auto) | INFO |
+| `PII_DETECTED` / `PII_REDACTED` | DLP scan finding | INFO |
+| `INJECTION_DETECTED` | Injection scanner finding | WARN |
+
+Audit details are themselves PII-redacted via `packages/dlp/src/persistence-redactor.ts` before persisting — sensitive payloads don't end up in the log itself.
+
+---
+
+### "How do I know I'm running paused?"
+
+Three signals, in order of how a client UI should surface them:
+
+1. **`metadata.pausedState`** is present on every decision returned during the window. UIs should render a prominent banner: *"⏸ JAK Shield paused (14 min remaining) — paused by reetu, reason: 'Q4 migration'"*.
+2. **Suppressed blocks** carry `metadata.originalAction = "block"` and `metadata.originalRule`. So you can show "this call would have been blocked under rule X — fired as allow because of pause."
+3. **`shield.pause_status`** is the authoritative read at any time — call it to confirm the state matches what the UI is showing.
+
+---
+
+### "What happens if my agent is partway through a multi-step task when scrutiny kicks in?"
+
+Nothing breaks. The agent gets the same `allow` / `block` decisions it would have gotten — they're just decided with tighter thresholds. A call that was right on the edge of an anomaly might now block; a call that's clearly fine still passes. Every blocked-during-scrutiny decision is non-overridable, so you either change the call or wait out the window.
+
+---
+
+### "Can I configure the thresholds / window sizes?"
+
+The defaults are deliberately conservative. To change them:
+
+- **Override TTL + scrutiny window size** — pass `scrutinyCalls` and `ttlSeconds` in the override offer when building (`packages/policy-engine/src/block-override.ts`).
+- **Pause max duration** — hard-capped at 60 min in code (`MAX_PAUSE_MS` in `packages/policy-engine/src/shield-pause.ts`). Change the constant if your environment requires a different cap. Tests will assert anything above the cap is refused.
+- **Scrutiny thresholds** — `SCRUTINY_THRESHOLDS` in `packages/policy-engine/src/heightened-scrutiny.ts`. Lower z-score = more sensitive. Lower Jaccard = catches more taint.
+- **NEVER_OVERRIDABLE_RULES** + **NEVER_PAUSABLE_RULES** — explicit allowlists in `block-override.ts` and `shield-pause.ts`. Adding a rule to the never-list means no human can bypass it; removing one means it becomes overridable / pausable. Treat changes here as security-impacting.
+
+All of the above are pure code constants — no runtime config. That's intentional. Operators can fork and tune; tenants can't loosen via the API.
+
+---
+
 ## 📈 Test & benchmark results
 
 These numbers come from `pnpm build && pnpm test && pnpm bench && node bench/perf-bench.mjs`. **Reproducible.**
