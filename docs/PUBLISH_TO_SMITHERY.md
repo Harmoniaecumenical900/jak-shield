@@ -2,7 +2,7 @@
 
 Smithery is the MCP server registry that exposes one-click install buttons for clients like Claude Desktop, Cursor, Cline, and Windsurf. Once JAK Shield is published, it appears at:
 
-**https://smithery.ai/server/reetu004/jak-shield**
+**https://smithery.ai/servers/reetu004/jak-shield**
 
 The Smithery CLI requires a one-time OAuth login under your identity, which is why this is a human-in-the-loop step. Use the prompt below in **GitHub Copilot Chat**, **Cursor**, **Claude Code**, **Cline**, or any agent that can run shell commands in your terminal.
 
@@ -51,8 +51,8 @@ order, in the user's terminal — do not assume any of them is already done:
     with backslash \. Or just put it all on one line.)
 
 6. After success, print the Smithery URL and the listing badge markdown:
-     URL:   https://smithery.ai/server/reetu004/jak-shield
-     Badge: [![Smithery](https://smithery.ai/badge/reetu004/jak-shield)](https://smithery.ai/server/reetu004/jak-shield)
+     URL:   https://smithery.ai/servers/reetu004/jak-shield
+     Badge: [![Smithery](https://smithery.ai/badge/reetu004/jak-shield)](https://smithery.ai/servers/reetu004/jak-shield)
 
 7. If step 5 fails with an authentication error: rerun step 2. If it fails
    with "namespace not found" or "no permission to publish to that
@@ -100,7 +100,7 @@ npx -y @smithery/cli@latest mcp publish ./packaging/claude-desktop/jak-shield-0.
 
 ## After it lands
 
-1. Open https://smithery.ai/server/reetu004/jak-shield — confirm the listing renders, the description from `smithery.yaml` is correct, the examples are visible.
+1. Open https://smithery.ai/servers/reetu004/jak-shield — confirm the listing renders, the description from `smithery.yaml` is correct, the examples are visible.
 2. Update the README install section if Smithery hands you a different canonical URL (the `reetu004/jak-shield` path is your namespace + repo).
 3. Replace the placeholder Smithery badge in the README install section with the live one.
 4. Tell people to install with the one-click button on the listing — that's the magic.
@@ -113,7 +113,7 @@ npx -y @smithery/cli@latest mcp publish ./packaging/claude-desktop/jak-shield-0.
 | `auth whoami` says "No token found" after login | Login didn't write the token file | Check `~/.smithery/config.json` exists; on Windows: `%USERPROFILE%\.smithery\config.json` |
 | `mcp publish` says "permission denied on namespace" | Namespace is your Smithery handle, not GitHub | Check `npx -y @smithery/cli@latest namespace list` for your actual namespace |
 | `mcp publish` says ".mcpb not found" | Working directory wrong, or bundle not built | `pnpm package:claude-desktop` from the repo root |
-| `mcp publish` succeeds but the listing is empty | Smithery still processing | Wait ~30 s, refresh https://smithery.ai/server/reetu004/jak-shield |
+| `mcp publish` succeeds but the listing is empty | Smithery still processing | Wait ~30 s, refresh https://smithery.ai/servers/reetu004/jak-shield |
 
 ---
 

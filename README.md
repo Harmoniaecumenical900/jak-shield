@@ -197,7 +197,7 @@ docker-compose up -d
 
 Once published to Smithery, JAK Shield is one-click installable into any compatible client (Claude Desktop, Cursor, Cline, Windsurf):
 
-> **https://smithery.ai/server/reetu004/jak-shield**  *(pending publish — see `docs/PUBLISH_TO_SMITHERY.md`)*
+> **https://smithery.ai/servers/reetu004/jak-shield**  *(see `docs/PUBLISH_TO_SMITHERY.md`)*
 
 Smithery handles config schema, secrets prompting (OpenAI key, encryption key, corporate domains), and the `.mcpb` install — driven by the [`smithery.yaml`](./smithery.yaml) at the repo root.
 
