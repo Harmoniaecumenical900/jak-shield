@@ -55,11 +55,11 @@ It's the **MCP-native** security layer your agents need — open-source, determi
 
 <div align="center">
 
-<img src=".github/assets/jak-shield-demo.svg" alt="JAK Shield blocking a DROP TABLE call inside Claude Desktop" width="780" />
+<img src=".github/assets/jak-shield-demo.gif" alt="JAK Shield blocking a DROP TABLE call inside Claude Desktop" width="780" />
 
 </div>
 
-*An actual screen-recording demo is at [`.github/assets/jak-shield-demo.gif`](./.github/assets/jak-shield-demo.gif) — run [`scripts/record-demo.ps1`](./scripts/record-demo.ps1) to (re)record it from your own Claude Desktop. The asciinema cast of the test suite is at [`.github/assets/demo.cast`](./.github/assets/demo.cast).*
+*This GIF is generated from [`jak-shield-demo.svg`](./.github/assets/jak-shield-demo.svg) by [`scripts/generate-demo-gif.mjs`](./scripts/generate-demo-gif.mjs) — pure-Node, no headless browser, no ffmpeg. If you want a real screen recording from your own Claude Desktop, run [`scripts/record-demo.ps1`](./scripts/record-demo.ps1) (requires ffmpeg + ScreenToGif). The asciinema cast of the test suite is at [`.github/assets/demo.cast`](./.github/assets/demo.cast).*
 
 ```
 You:    "Send a quick summary of customer data to partner@external.com"
@@ -327,7 +327,7 @@ Compliance tags emitted: HIPAA · FERPA · GDPR · CCPA · DPDP · SOX
 We won't oversell. From our own [audit](./docs/AUDIT.md):
 
 - ❌ **Not certified for any regulatory framework.** The compliance module emits *signals*, not legal classifications. A qualified officer must confirm scope.
-- ❌ **No SOC 2, no pentest, no customer reference yet.** Pre-customer, by design — open-source first.
+- ❌ **No SOC 2, no pentest, no customer reference yet.** Pre-customer, by design — open-source first. The full roadmap (controls already in place, controls still to add, realistic Type I / Type II dates, what to do if you're a regulated buyer today) is in [`docs/SOC2_ROADMAP.md`](./docs/SOC2_ROADMAP.md). TL;DR: most of the *technical* controls auditors check are already shipping (RBAC, encryption at rest, HMAC-signed decisions, tamper-evident audit log, multi-window anomaly detection). What's missing is the audit engagement itself + the policy paperwork + the observation window. ~$30–60K and 6–9 months when there's a customer asking for it.
 - ❌ **Not "better than Lakera / Nightfall."** We never measured head-to-head. They have ML-trained models we don't. We're shaped differently — MCP-native, deterministic, fully open.
 - ✅ **What is true:** The engine is fast, well-tested, signed, modular, and runs the end-to-end MCP decision pipeline at ~2–3 ms p95 — well under the 50 ms SLO. The taint tracker + capability tokens are genuinely novel for MCP.
 
@@ -378,7 +378,7 @@ If you're a regulated buyer — bank, hospital, school — talk to us before dep
 | Self-hosted runtime | ✅ stdio in-process or HTTP | ✅ Claude Desktop local | ❌ hosted | ❌ hosted | ❌ hosted | ✅ | ✅ |
 | Adversarial bench in repo | ✅ 45 scenarios, 45/45 | ❌ | ❌ (private corpus) | ❌ | ❌ | partial (example tests) | partial (validator examples) |
 | End-to-end p95 latency in repo | ✅ ~2.3 ms (`bench/perf-bench.mjs`) | n/a | unknown — typical ML inference 50–200 ms | unknown | network-bound | depends on LLM judge | varies per validator |
-| SOC 2 / pentest report | ❌ pre-customer | ✅ (Anthropic corporate) | ✅ | ✅ | ✅ | ❌ | ❌ |
+| SOC 2 / pentest report | ❌ pre-customer ([roadmap](./docs/SOC2_ROADMAP.md)) | ✅ (Anthropic corporate) | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Customer reference logos | ❌ none yet | n/a | ✅ | ✅ | ✅ | partial | partial |
 | Pre-built MCP connectors (Gmail, Postgres, shell, …) | ✅ 14 | ❌ user wires their own | ❌ | ❌ | ❌ | ❌ | ❌ |
 
@@ -506,7 +506,9 @@ We love contributions. Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) and pick an i
 - [x] **Q1 2026 — Phase 2:** 13 protected connectors + dashboard
 - [x] **Q1 2026 — Phase 3:** Multi-tenant SaaS foundation (auth · API keys · billing)
 - [x] **Q1 2026 — Phase 3b:** v2 detectors · taint · chains · anomaly · capability tokens
-- [ ] **Q2 2026 — Phase 4:** OAuth / SSO · SOC 2 Type I · public head-to-head benchmark
+- [x] **Q2 2026 — Phase 4a:** v0.2 — block override + heightened scrutiny, signed override fields
+- [ ] **Q2 2026 — Phase 4b:** OAuth / SSO · public head-to-head benchmark
+- [ ] **Q3 2026 — Phase 4c:** SOC 2 Type I (engagement contingent on first regulated customer — see [`docs/SOC2_ROADMAP.md`](./docs/SOC2_ROADMAP.md))
 - [ ] **Q2 2026 — Phase 5:** ML-trained injection classifier · embedding-based taint similarity
 - [ ] **Q3 2026 — Phase 6:** Hosted SaaS GA · enterprise pilots · compliance certifications
 - [ ] **2026+:** ISO 27001 · HIPAA BAA · FedRAMP · industry policy packs
